@@ -1,0 +1,35 @@
+.header {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 60px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 44px;
+
+    border-bottom: 1px solid #E6E6E6;
+    
+}
+
+.img_wrapper {
+    position: absolute;
+    display: flex;
+    left: 16px;
+    align-items: center;
+    cursor: pointer;
+    height: 100%;
+}
+
+.img_wrapper > img {
+    width: 16px;
+    height: 16px;
+}
+
+.text_wrapper {
+    
+    font-family: 'Pretendard';
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 21px;
+}
