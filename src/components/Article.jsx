@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
-import VolumeIcon from "../icons/volume_x.png";
-import VolumeFilledIcon from "../icons/volume_o.png";
-import CopyIcon from "../icons/copy.png";
-import BookmarkIcon from "../icons/bookmark_x.png";
-import BookmarkFilledIcon from "../icons/bookmark_o.png";
+import VolumeIcon from "../icons/volume_x.svg";
+import VolumeFilledIcon from "../icons/volume_o.svg";
+import CopyIcon from "../icons/copy.svg";
+import BookmarkIcon from "../icons/bookmark_x.svg";
+import BookmarkFilledIcon from "../icons/bookmark_o.svg";
 
 export default function Article({ title, content }) {
   const [bookmarked, setBookmarked] = useState(false);
