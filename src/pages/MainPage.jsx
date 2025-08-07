@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import Article from "../components/Article";
 
-import HomeIcon from "../icons/home_o.png";
-import BookmarkIcon from "../icons/bookmark_x.png";
-import SearchIcon from "../icons/search_x.png";
-import UserIcon from "../icons/user_x.png";
-import VolumeIcon from "../icons/volume_x.png";
-import VolumeFilledIcon from "../icons/volume_o.png";
+import HomeIcon from "../icons/home_o.svg";
+import BookmarkIcon from "../icons/bookmark_x.svg";
+import SearchIcon from "../icons/search_x.svg";
+import UserIcon from "../icons/user_x.svg";
+import VolumeIcon from "../icons/volume_x.svg";
+import VolumeFilledIcon from "../icons/volume_o.svg";
 
 export default function MainPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
