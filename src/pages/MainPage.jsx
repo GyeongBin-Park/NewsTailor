@@ -1,20 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Article from "../components/Article";
+import Footer from "../components/Footer";
 
-import HomeIcon from "../icons/home_o.svg";
-import BookmarkIcon from "../icons/bookmark_x.svg";
-import SearchIcon from "../icons/search_x.svg";
-import UserIcon from "../icons/user_x.svg";
 import VolumeIcon from "../icons/volume_x.svg";
 import VolumeFilledIcon from "../icons/volume_o.svg";
+import LogoIcon from "../icons/news_tailor_logo.png";
+import PersonIcon from "../icons/person.png";
 
 export default function MainPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voices, setVoices] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // ---  임시 사용자 아이디 (실제로는 로그인 정보에서 가져와야 함) ---
+  const userId = "user123";
+
+  useEffect(() => {
+    const savedBookmarks =
+      JSON.parse(localStorage.getItem("bookmarked_articles")) || [];
+    setBookmarks(savedBookmarks);
+  }, []);
+
+  const handleToggleBookmark = (article) => {
+    const isAlreadyBookmarked = bookmarks.some((b) => b.id === article.id);
+    let newBookmarks = [];
+
+    if (isAlreadyBookmarked) {
+      newBookmarks = bookmarks.filter((b) => b.id !== article.id);
+    } else {
+      newBookmarks = [...bookmarks, article];
+    }
+
+    setBookmarks(newBookmarks);
+    localStorage.setItem("bookmarked_articles", JSON.stringify(newBookmarks));
+  };
+
+  // 컴포넌트가 처음 렌더링될 때 목소리 목록을 불러옴
+  useEffect(() => {
+    const loadVoices = () => {
+      setVoices(window.speechSynthesis.getVoices());
+    };
+
+    // 목소리가 변경(로드)되면 loadVoices 함수 호출
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices(); // 초기 로드
+
+    // 컴포넌트가 사라질 때 이벤트 리스너를 정리함
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
 
   const articles = [
-    { title: "안녕하세요", content: "반갑습니다" },
-    { title: "Hello", content: "everyone" },
-    { title: "Head Line", content: "Article" },
+    { id: 1, title: "안녕하세요", content: "반갑습니다. 이것은 테스트입니다." },
+    { id: 2, title: "Hello", content: "everyone" },
+    { id: 3, title: "Head Line", content: "Article" },
   ];
 
   const detectLanguage = (text) => {
@@ -30,7 +73,6 @@ export default function MainPage() {
     }
 
     const synth = window.speechSynthesis;
-    const voices = synth.getVoices();
     setIsSpeaking(true);
 
     articles.forEach((article, index) => {
@@ -49,13 +91,44 @@ export default function MainPage() {
     });
   };
 
+  // 로그아웃 처리 함수
+  const handleLogout = () => {
+    // 실제 로그아웃 처리 로직 (예: 로컬 스토리지 토큰 삭제 등)
+    console.log("로그아웃 되었습니다.");
+    setIsMenuOpen(false); // 메뉴 닫기
+    navigate("/login"); // 로그인 페이지로 이동
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b gap-10">
         <div className="w-10 h-10 bg-gray-300 rounded-md" />
-        <h1 className="text-lg font-semibold">오늘의 뉴스</h1>
-        <div className="w-8 h-8 bg-gray-300 rounded-full" />
+        <img src={LogoIcon} alt="News Tailor Logo" className="h-10" />
+
+        <div className="relative">
+          <img
+            src={PersonIcon}
+            alt="Person Logo"
+            className="h-10 cursor-pointer"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          />
+          {/* isMenuOpen이 true일 때만 드롭다운 메뉴 표시 */}
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border z-10">
+              <div className="px-4 py-2 text-sm text-gray-700">
+                아이디: <strong>{userId}</strong>
+              </div>
+              <div className="border-t border-gray-100"></div>
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                로그아웃
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Section Title */}
@@ -71,18 +144,17 @@ export default function MainPage() {
 
       {/* Articles */}
       <main className="space-y-4 px-4">
-        {articles.map((a, i) => (
-          <Article key={i} title={a.title} content={a.content} />
+        {articles.map((a) => (
+          <Article
+            key={a.id}
+            article={a}
+            isBookmarked={bookmarks.some((b) => b.id === a.id)}
+            onToggleBookmark={handleToggleBookmark}
+          />
         ))}
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 border-t bg-white flex justify-around items-center h-16">
-        <img src={HomeIcon} alt="home" className="w-6 h-6" />
-        <img src={BookmarkIcon} alt="bookmark" className="w-6 h-6" />
-        <img src={SearchIcon} alt="search" className="w-6 h-6" />
-        <img src={UserIcon} alt="user" className="w-6 h-6" />
-      </nav>
+      <Footer />
     </div>
   );
 }

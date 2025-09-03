@@ -1,9 +1,23 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<rect width="24" height="24" fill="url(#pattern0_50_10)"/>
-<defs>
-<pattern id="pattern0_50_10" patternContentUnits="objectBoundingBox" width="1" height="1">
-<use xlink:href="#image0_50_10" transform="scale(0.0416667)"/>
-</pattern>
-<image id="image0_50_10" width="24" height="24" preserveAspectRatio="none" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAACxAAAAsQHGLUmNAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAPJJREFUSIndlTESwUAUhr9RJIfQ4hYURq7AJciBaLmGoZGoqMglKESNIgkrI5t9L51/5m+yb/7v7c7bDdTLB0IgBu65Y2CWrzVSGzgCzwof8hqV/JpwE6LaSegQXniqAewFgEgDSAWAtCqkpSH/0EMDOAkAlbU2wFIAWAlq3/LJRtBlTD0NALJLZIM0umiFPLI5j8imJQV2+Td15/+lAFgACZ/X9AzMgVGT4B6wpX6KNkBXGj4Arg7hhS9AX9K5JNyEdFwAa0W4eVxWBQ3CCw/NwPJbNHHZYo3GtsVE2bVp6yss+clU+WYGlo/oaKM76ivjBSbtwPLV0nMVAAAAAElFTkSuQmCC"/>
-</defs>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="512" height="512">
+<g>
+	<circle cx="256" cy="128" r="128"/>
+	<path d="M256,298.667c-105.99,0.118-191.882,86.01-192,192C64,502.449,73.551,512,85.333,512h341.333   c11.782,0,21.333-9.551,21.333-21.333C447.882,384.677,361.99,298.784,256,298.667z"/>
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </svg>
