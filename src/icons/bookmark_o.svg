@@ -1,9 +1,2 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<rect width="24" height="24" fill="url(#pattern0_50_3)"/>
-<defs>
-<pattern id="pattern0_50_3" patternContentUnits="objectBoundingBox" width="1" height="1">
-<use xlink:href="#image0_50_3" transform="scale(0.0416667)"/>
-</pattern>
-<image id="image0_50_3" width="24" height="24" preserveAspectRatio="none" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAACxAAAAsQHGLUmNAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAALFJREFUSIntlU0KwjAUhL96PZEiiHfoPSztwl5FQddij6JX0K5bN4k8YxISaVZmYHbz5ssPJPCpEuiBAZgiPQBXYIVD7Q+lLtdmeTljufZSAvoEgIsEPBMAHgCFAkzmmc2kYpGo+K0MyIAM+EdApxytkNdRFteBM8GAvWVRuxjA6Am1np37vtlRBu+OUOMp12ocszcZqiyBr4/bI9udVGZoC5yAM7CJKNdaA0fgoLoAeAEqkrKSjwqKYgAAAABJRU5ErkJggg=="/>
-</defs>
-</svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="Filled" viewBox="0 0 24 24" width="512" height="512"><path d="M2.849,23.55a2.954,2.954,0,0,0,3.266-.644L12,17.053l5.885,5.853a2.956,2.956,0,0,0,2.1.881,3.05,3.05,0,0,0,1.17-.237A2.953,2.953,0,0,0,23,20.779V5a5.006,5.006,0,0,0-5-5H6A5.006,5.006,0,0,0,1,5V20.779A2.953,2.953,0,0,0,2.849,23.55Z"/></svg>
