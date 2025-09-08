@@ -139,7 +139,7 @@ const Step2 = ({onNext}) => {
                 />
                 <button
                 type="button"
-                className="absolute top-1/2 right-[10px] -translate-y-1/2 w-[58px] h-[26px] rounded-md bg-[#FF2655] text-white text-[13px]"
+                className="absolute top-1/2 right-[10px] -translate-y-1/2 w-[58px] h-[26px] rounded-md bg-[#401E63] text-white text-[13px]"
                 onClick={() => checkDuplicate(username)}
                 >
                 중복확인

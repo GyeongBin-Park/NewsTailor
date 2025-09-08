@@ -39,7 +39,7 @@ const Step1 = ({onNext}) => {
                         type="submit"
                         disabled={!isActive}
                         className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg
-                        ${!isActive ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#FF2655] text-white'}`}
+                        ${!isActive ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#401E63] text-white'}`}
                     >
                         계속하기
                     </button>
