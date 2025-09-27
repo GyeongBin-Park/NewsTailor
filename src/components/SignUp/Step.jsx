@@ -6,7 +6,6 @@ import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
 import Step4 from "./Step4";
-import StepResult from "./StepResult";
 import closeImg from "../../icons/close.svg";
 import prevImg from "../../icons/prevImg.svg";
 
@@ -15,20 +14,24 @@ const Step = () => {
     const nav = useNavigate();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
+        name: "",
         username: "",
         phoneNumber: "",
         nickname: "",
         password: "",
         pw_valid: "",
+        interests: [],
         service_agree: true,
     });
 
     const submitToBackend = async (data) => {
         const payload = {
+            name: data.name,
             username: data.username,
             phoneNumber: data.phoneNumber,
             nickname: data.nickname,
             password: data.password,
+            interests: data.interests,
         };
 
         try {
@@ -44,7 +47,7 @@ const Step = () => {
 
             if (result.success) {
                 alert("🎉 회원가입 성공!");
-                setStep(5); // StepResult로 이동
+                setStep(4); // Step4로 이동
             } 
             
             else {
@@ -62,7 +65,7 @@ const Step = () => {
         const updated = { ...formData, ...data };
         setFormData(updated);
 
-        if (step === 4) {
+        if (step === 3) {
             submitToBackend(updated); // 마지막 단계 → 서버에 전송
         } else {
             setStep(prev => prev + 1);
@@ -83,8 +86,7 @@ const Step = () => {
             {step === 1 && <Step1 onNext={updateFromData} />}
             {step === 2 && <Step2 onNext={updateFromData} />}
             {step === 3 && <Step3 onNext={updateFromData} />}
-            {step === 4 && <Step4 onNext={updateFromData} />}
-            {step === 5 && <StepResult data={formData}/>}
+            {step === 4 && <Step4 data={formData}/>}
         </div>
     )
 }
