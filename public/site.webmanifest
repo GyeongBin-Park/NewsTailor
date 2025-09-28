@@ -1,6 +1,6 @@
 {
   "name": "NewsTailor",
-  "short_name": "NewsT",
+  "short_name": "뉴스테일러",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
