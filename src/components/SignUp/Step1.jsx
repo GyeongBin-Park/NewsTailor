@@ -111,7 +111,7 @@ const Step1 = ({onNext}) => {
             <form onSubmit={handleSubmit(onSubmit)} className="w-[358px] mx-auto">
                 
                 <div className="mt-[37px]">
-                    <p className="mb-[4px]">이름</p>
+                    <p className="mb-[4px] ml-[5px]">이름</p>
                     <input 
                         placeholder="사용자의 이름을 입력해주세요" 
                         {...register("name", {required:true})} 
@@ -120,7 +120,7 @@ const Step1 = ({onNext}) => {
                 </div>
 
                 <div className="mt-[37px]">
-                    <p className="mb-[4px]">아이디</p>
+                    <p className="mb-[4px] ml-[5px]">아이디</p>
                     <div className="relative w-[358px] overflow-hidden">
                     <input 
                         placeholder="아이디를 입력해주세요" 
@@ -141,7 +141,7 @@ const Step1 = ({onNext}) => {
                 </div>
 
                 <div className="mt-[37px]">
-                    <p className="mb-[4px]">비밀번호</p>
+                    <p className="mb-[4px] ml-[5px]">비밀번호</p>
                     <input 
                         type="password"
                         placeholder="비밀번호를 입력해주세요" 
@@ -165,7 +165,7 @@ const Step1 = ({onNext}) => {
                 </div>
 
                 <div className="mt-[37px]">
-                    <p className="mb-[4px]">비밀번호 확인</p>
+                    <p className="mb-[4px] ml-[5px]">비밀번호 확인</p>
                     <input 
                         type="password"
                         placeholder="비밀번호를 한번 더 입력해주세요" 

@@ -56,14 +56,24 @@ const Step3 = ({onNext}) => {
         <div className="w-screen">
             <StepIndicator currentStep={2}/>
             <form onSubmit={handleSubmit(onSubmit)} className="w-[358px] mx-auto">
-                <div className="font-medium font-display text-[28px] py-[10px]">
+                <div className="font-medium font-display text-[28px] py-[10px] ml-[15px]">
                     <p>뉴스테일러 서비스 이용약관에</p>
                     <p>동의해주세요</p>
                 </div>
         
                 <div className="absolute bottom-[117px] left-1/2 -translate-x-1/2">
-                    <article className={`border border-box w-[358px] h-[60px] rounded-md text-lg px-[19px] flex flex-row-reverse items-center justify-between
-                                        ${!allChecked ? 'border-[#E6E6E6] text-black' : 'text-black border-[#F1C40F]'}`}>
+                    <article 
+                        className={`border border-box w-[358px] h-[60px] rounded-md text-lg px-[19px] flex flex-row-reverse items-center justify-between cursor-pointer
+                                        ${!allChecked ? 'border-[#E6E6E6] text-black' : 'text-black border-[#F1C40F]'}`}
+                        onClick={() => {
+                            const newValue = !allChecked;
+                            setAllChecked(newValue);
+                            setCheckboxes({
+                                option1: newValue,
+                                option2: newValue,
+                            });
+                        }}
+                    >
                         <input 
                             type="checkbox"
                             checked={allChecked}
@@ -76,14 +86,6 @@ const Step3 = ({onNext}) => {
                             src={allChecked ? checkImg : noCheckImg}
                             alt={allChecked ? "checked" : "not checked"}
                             className="w-5 h-5"
-                            onClick={() => {
-                                const newValue = !checkboxes.option1;
-                                setAllChecked(newValue);
-                                setCheckboxes({
-                                    option1: newValue,
-                                    option2: newValue,
-                                });
-                            }}
                         />
 
                         <label htmlFor="all" className="cursor-pointer">약관 전체 동의</label>
