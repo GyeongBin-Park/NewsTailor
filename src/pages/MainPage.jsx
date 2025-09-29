@@ -5,7 +5,8 @@ import Footer from "../components/Footer";
 
 import VolumeIcon from "../icons/volume_x.svg";
 import VolumeFilledIcon from "../icons/volume_o.svg";
-import LogoIcon from "../icons/news_tailor_logo.png";
+import TextLogo from "../icons/text_logo.svg";
+import LogoIcon from "/favicon-96x96.png";
 import PersonIcon from "../icons/person.png";
 
 export default function MainPage() {
@@ -102,17 +103,17 @@ export default function MainPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b gap-10">
-        <div className="w-10 h-10 bg-gray-300 rounded-md" />
-        <img src={LogoIcon} alt="News Tailor Logo" className="h-10" />
-
+      <header className="flex items-center justify-between pl-4 pr-5 py-3 border-b bg-[#39235C]">
+        <img src={LogoIcon} alt="Logo" className="w-10 h-10" />
+        <img src={TextLogo} alt="News Tailor Logo" className="h-10" />
         <div className="relative">
-          <img
-            src={PersonIcon}
-            alt="Person Logo"
-            className="h-10 cursor-pointer"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          />
+           <img
+             src={PersonIcon}
+             alt="Person Logo"
+             className="w-8 h-8 cursor-pointer"
+             style={{ filter: 'brightness(0) saturate(100%) invert(69%) sepia(92%) saturate(1237%) hue-rotate(9deg) brightness(97%) contrast(93%)' }}
+             onClick={() => setIsMenuOpen(!isMenuOpen)}
+           />
           {/* isMenuOpen이 true일 때만 드롭다운 메뉴 표시 */}
           {isMenuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border z-10">
