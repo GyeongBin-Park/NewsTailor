@@ -1,6 +1,7 @@
 import {useForm} from "react-hook-form";
 import StepIndicator from "./StepIndicator";
 import { useState } from "react";
+import { BACKEND } from "../../api/auth";
 
 import politicsX from "../../icons/politics_x.svg";
 import politicsO from "../../icons/politics_o.svg";
@@ -21,12 +22,12 @@ const Step2 = ({onNext}) => {
     const [selectedCategories, setSelectedCategories] = useState([]);
 
     const categories = [
-        { id: 'politics', name: '정치', iconX: politicsX, iconO: politicsO },
-        { id: 'economy', name: '경제', iconX: economyX, iconO: economyO },
-        { id: 'society', name: '사회', iconX: societyX, iconO: societyO },
-        { id: 'lifestyle', name: '생활/문화', iconX: lifestyleX, iconO: lifestyleO },
-        { id: 'world', name: '세계', iconX: worldX, iconO: worldO },
-        { id: 'science', name: 'IT/과학', iconX: scienceX, iconO: scienceO }
+        { id: 'politics', name: '정치', iconX: politicsX, iconO: politicsO, backendId: 100 },
+        { id: 'economy', name: '경제', iconX: economyX, iconO: economyO, backendId: 101 },
+        { id: 'society', name: '사회', iconX: societyX, iconO: societyO, backendId: 102 },
+        { id: 'lifestyle', name: '생활/문화', iconX: lifestyleX, iconO: lifestyleO, backendId: 103 },
+        { id: 'world', name: '세계', iconX: worldX, iconO: worldO, backendId: 104 },
+        { id: 'science', name: 'IT/과학', iconX: scienceX, iconO: scienceO, backendId: 105 }
     ];
 
     const toggleCategory = (categoryId) => {
@@ -40,9 +41,19 @@ const Step2 = ({onNext}) => {
         });
     };
 
-    const onSubmit = (data) => {
-        console.log(data);
-        onNext({interests: selectedCategories});
+    const onSubmit = async (data) => {
+        try {
+            // 선택된 카테고리를 백엔드 ID로 변환
+            const interestIds = selectedCategories.map(categoryId => {
+                const category = categories.find(cat => cat.id === categoryId);
+                return category ? category.backendId : null;
+            }).filter(id => id !== null);
+
+            console.log('Selected interest IDs:', interestIds);
+            onNext({interests: selectedCategories, interestIds: interestIds});
+        } catch (error) {
+            console.error('관심분야 처리 오류:', error);
+        }
     };
 
     return (

@@ -21,17 +21,16 @@ const Step = () => {
         password: "",
         pw_valid: "",
         interests: [],
+        interestIds: [],
         service_agree: true,
     });
 
     const submitToBackend = async (data) => {
         const payload = {
-            name: data.name,
             username: data.username,
-            phoneNumber: data.phoneNumber,
-            nickname: data.nickname,
             password: data.password,
-            interests: data.interests,
+            nickname: data.name, // name을 nickname으로 사용
+            interestIds: data.interestIds, // 백엔드 API 형식에 맞게 수정
         };
 
         try {
