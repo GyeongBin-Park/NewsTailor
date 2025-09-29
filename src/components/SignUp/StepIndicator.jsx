@@ -1,6 +1,6 @@
 const StepIndicator = ({ currentStep }) => {
     return (
-        <div className="flex justify-center pt-[18px] pb-[36px]">
+        <div className="flex justify-center pt-[30px] pb-[30px]">
         <div className="flex items-center">
             {[0, 1, 2, 3].map((step, index) => (
                 <div key={index} className="flex items-center"> 

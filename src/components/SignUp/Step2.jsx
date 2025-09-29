@@ -1,209 +1,111 @@
-import { useState, useEffect } from "react";
 import {useForm} from "react-hook-form";
 import StepIndicator from "./StepIndicator";
+import { useState } from "react";
+import { BACKEND } from "../../api/auth";
 
-const BACKEND = import.meta.env.VITE_BACKEND_URL;
+import politicsX from "../../icons/politics_x.svg";
+import politicsO from "../../icons/politics_o.svg";
+import economyX from "../../icons/economy_x.svg";
+import economyO from "../../icons/economy_o.svg";
+import societyX from "../../icons/society_x.svg";
+import societyO from "../../icons/society_o.svg";
+import lifestyleX from "../../icons/lifestyle_x.svg";
+import lifestyleO from "../../icons/lifestyle_o.svg";
+import worldX from "../../icons/world_x.svg";
+import worldO from "../../icons/world_o.svg";
+import scienceX from "../../icons/science_x.svg";
+import scienceO from "../../icons/science_o.svg";
 
 const Step2 = ({onNext}) => {
-    const {
-        register, 
-        handleSubmit, 
-        watch,
-        formState: {errors, isValid},
-    } = useForm({mode: "onChange"});
+    const {handleSubmit} = useForm();
 
-    
-    const pwValue = watch("password");
-    const username = watch("username");
+    const [selectedCategories, setSelectedCategories] = useState([]);
 
-    const [isActive, setIsActive] = useState(false);
+    const categories = [
+        { id: 'politics', name: '정치', iconX: politicsX, iconO: politicsO, backendId: 100 },
+        { id: 'economy', name: '경제', iconX: economyX, iconO: economyO, backendId: 101 },
+        { id: 'society', name: '사회', iconX: societyX, iconO: societyO, backendId: 102 },
+        { id: 'lifestyle', name: '생활/문화', iconX: lifestyleX, iconO: lifestyleO, backendId: 103 },
+        { id: 'world', name: '세계', iconX: worldX, iconO: worldO, backendId: 104 },
+        { id: 'science', name: 'IT/과학', iconX: scienceX, iconO: scienceO, backendId: 105 }
+    ];
 
-    const [idValid, setIdValid] = useState(false);
-    const [checking, setChecking] = useState(false);
-    const [idError, setIdError] = useState("");
+    const toggleCategory = (categoryId) => {
+        setSelectedCategories(prev => {
+            if (prev.includes(categoryId)) {
+                return prev.filter(id => id !== categoryId);
+            } else if (prev.length < 3) {
+                return [...prev, categoryId];
+            }
+            return prev;
+        });
+    };
 
-    useEffect(() => {
-        setIsActive(isValid && idValid); // 아이디 중복 확인도 완료돼야 버튼 활성화
-    }, [isValid, idValid]);
-
-    const checkDuplicate = async () => {
-        if (!username) return;
-
+    const onSubmit = async (data) => {
         try {
-            setChecking(true);
-            setIdError("");
+            // 선택된 카테고리를 백엔드 ID로 변환
+            const interestIds = selectedCategories.map(categoryId => {
+                const category = categories.find(cat => cat.id === categoryId);
+                return category ? category.backendId : null;
+            }).filter(id => id !== null);
 
-            const res = await fetch(
-                `${BACKEND}/api/auth/check-username?username=${encodeURIComponent(username)}`,
-                {  method: "GET"  }
-            );
-
-            // const result = await res.json();
-
-        //     if (res.status === 200) {
-        //         setIdValid(true);
-        //         alert("사용 가능한 아이디입니다!");
-        //     } else if (res.status === 409) {
-        //         setIdValid(false);
-        //         setIdError("이미 사용 중인 아이디입니다.");
-        //     } else {
-        //         setIdValid(false);
-        //         setIdError("알 수 없는 오류")
-        //     }
-        // } catch (err) {
-        //     console.error("중복 확인 오류", err);
-        //     setIdError("오류가 발생했습니다. 다시 시도해주세요.");
-        // } finally {
-        //     setChecking(false);
-        // }
-
-    //     if (res.status === 200) {
-    //         const result = await res.json();
-    //         if (result.success) {
-    //             setIdValid(true);
-    //             alert("사용 가능한 아이디입니다!");
-    //         } else {
-    //             setIdValid(false);
-    //             setIdError("서버 응답 오류입니다.");
-    //         }
-    //     } else if (res.status === 409) {
-    //         // JSON 파싱 안 함! 그냥 메시지만 출력
-    //         setIdValid(false);
-    //         setIdError("이미 사용 중인 아이디입니다.");
-    //     } else {
-    //         const text = await res.text(); // 혹시 어떤 에러인지 확인
-    //         console.warn("예상치 못한 오류:", text);
-    //         setIdValid(false);
-    //         setIdError(`예상치 못한 오류 (code: ${res.status})`);
-    //     }
-    // } catch (err) {
-    //     console.error("중복 확인 오류", err);
-    //     setIdError("서버 오류가 발생했습니다. 다시 시도해주세요.");
-    // } finally {
-    //     setChecking(false);
-    // }
-    // };
-
-    // 1) 200 응답일 때 JSON 파싱
-    if (res.status === 200) {
-        const result = await res.json(); // { available: boolean, message: string }
-        if (result.available) {
-          setIdValid(true);
-          alert(result.message);
-        } else {
-          setIdValid(false);
-          setIdError(result.message);
+            console.log('Selected interest IDs:', interestIds);
+            onNext({interests: selectedCategories, interestIds: interestIds});
+        } catch (error) {
+            console.error('관심분야 처리 오류:', error);
         }
-  
-      // 2) 그 외(4xx/5xx)
-      } else {
-        const text = await res.text();
-        console.warn("API error:", text);
-        setIdValid(false);
-        setIdError(`예상치 못한 오류 (code: ${res.status})`);
-      }
-  
-    } catch (err) {
-      console.error("중복 확인 오류", err);
-      setIdValid(false);
-      setIdError("서버 오류가 발생했습니다. 다시 시도해주세요.");
-  
-    } finally {
-      setChecking(false);
-    }
-  };
-
-    
-    const onSubmit = (data) => {
-        
-        console.log(data);
-        setIsActive(isActive);
-        onNext(data);
     };
 
     return (
         <div className="w-screen">
             <StepIndicator currentStep={1}/>
-        <form onSubmit={handleSubmit(onSubmit)} className="w-[358px] mx-auto">
-            <div className="font-medium font-display text-[28px] py-[10px]">
-                <p>아이디와 비밀번호를</p>
-                <p>입력해주세요</p>
-            </div>
-            <div className="mt-[37px]">
-                <p className="mb-[4px]">아이디</p>
-                <div className="relative w-[358px]">
-                <input 
-                    placeholder="아이디를 입력해주세요" 
-                    {...register("username", {required:true})} 
-                    className="w-full h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6] relative"
-                />
-                <button
-                type="button"
-                className="absolute top-1/2 right-[10px] -translate-y-1/2 w-[58px] h-[26px] rounded-md bg-[#FF2655] text-white text-[13px]"
-                onClick={() => checkDuplicate(username)}
-                >
-                중복확인
-                </button>
-                {idError && (
-                    <p className="text-sm">{idError}</p>
-                )}
+            <form onSubmit={handleSubmit(onSubmit)} className="w-[358px] mx-auto">
+                <div className="font-medium font-display text-[28px] py-[10px] ml-[19px]">
+                    <p>관심 분야를</p>
+                    <p>선택해주세요 (최대 3개)</p>
                 </div>
-            </div>
 
-            <div className="mt-[38px] fixed">
-                <p className="mb-[4px]">비밀번호</p>
-                <input 
-                    type="password"
-                    placeholder="비밀번호를 입력해주세요" 
-                    autoComplete="off"
-                    {...register("password", {
-                        required:true,
-                        minLength: {
-                            value: 8,
-                            message: "최소 8자 이상으로 입력해주세요.",
-                        },
-                        pattern: {
-                            value: /^(?=.*[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]).{6,}$/,
-                            message: "특수 문자를 1개 이상 포함해서 입력해주세요.",
-                        }
-                    })} 
-                    className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6]"
-                />
-                {errors.password && (
-                    <p className="text-[#FF2655] text-sm">{errors.password.message}</p>
-                )
-                }
-            </div>
+                <div className="mt-[10px] justify-items-center">
+                    <div className="grid grid-cols-2 gap-x-0 gap-y-[7px] justify-items-center w-[326px]">
+                        {categories.map((category) => {
+                            const isSelected = selectedCategories.includes(category.id);
+                            return (
+                                <div key={category.id} className="flex flex-col items-center">
+                                    <div
+                                        onClick={() => toggleCategory(category.id)}
+                                        className={`w-[128px] h-[128px] rounded-[28px] flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                                            isSelected 
+                                                ? 'bg-[#F1C40F]' 
+                                                : 'bg-[#F1F1F1] hover:bg-[#E8E8E8]'
+                                        }`}
+                                    >
+                                        <img
+                                            src={isSelected ? category.iconO : category.iconX}
+                                            alt={category.name}
+                                            className="w-[100px] h-[100px]"
+                                        />
+                                    </div>
+                                    <span className="text-sm font-medium mt-2 text-center">
+                                        {category.name}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
 
-            <div className="mt-[150px] fixed">
-                <p className="mb-[4px]">비밀번호 확인</p>
-                <input 
-                    type="password"
-                    placeholder="비밀번호를 한번 더 입력해주세요" 
-                    autoComplete="off"
-                    {...register("pw_valid", {
-                        required:true,
-                        validate: (value) => value === pwValue || "동일한 비밀번호를 입력해주세요.",
-                    })} 
-                    className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6]"
-                />
-                {errors.pw_valid && (
-                    <p className="text-[#FF2655] text-sm">{errors.pw_valid.message}</p>
-                )}
-            </div>
-
-            <div className="absolute bottom-[34px]">
-                <button 
-                    type="submit"
-                    disabled={!isActive}
-                    className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg text-[#C7C7C7] 
-                    ${!isActive ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#FF2655] text-white'}`}
-                >
-                    계속하기
-                </button>
-            </div>
-        </form>
-    </div>
+                <div className="absolute bottom-[34px] left-1/2 -translate-x-1/2">
+                    <button 
+                        type="submit"
+                        disabled={selectedCategories.length === 0}
+                        className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg
+                        ${selectedCategories.length === 0 ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#401E63] text-white'}`}
+                    >
+                        계속하기
+                    </button>
+                </div>
+            </form>
+        </div>
     )
 
 }
