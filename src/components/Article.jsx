@@ -152,7 +152,7 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-4 space-y-3 border border-gray-100">
+    <div className="bg-white p-4 space-y-3 border border-gray-100" style={{ borderRadius: '10px', boxShadow: '0px 0px 9.6px rgba(0, 0, 0, 0.1)' }}>
       {/* Title */}
       <div className="inline-flex items-center px-3 py-1 bg-yellow-200 text-yellow-900 rounded-lg text-sm font-semibold">
         {title}
