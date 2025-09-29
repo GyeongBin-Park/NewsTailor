@@ -24,7 +24,6 @@ export default function BookmarkPage() {
     };
   }, []);
 
-  // 북마크 페이지에서도 북마크 해제할 수 있도록
   const handleToggleBookmark = (article) => {
     const newBookmarks = bookmarks.filter((b) => b.id !== article.id);
     setBookmarks(newBookmarks);

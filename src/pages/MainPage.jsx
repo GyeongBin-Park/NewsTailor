@@ -93,7 +93,6 @@ export default function MainPage() {
 
   // 로그아웃 처리 함수
   const handleLogout = () => {
-    // 실제 로그아웃 처리 로직 (예: 로컬 스토리지 토큰 삭제 등)
     console.log("로그아웃 되었습니다.");
     setIsMenuOpen(false); // 메뉴 닫기
     navigate("/login"); // 로그인 페이지로 이동
