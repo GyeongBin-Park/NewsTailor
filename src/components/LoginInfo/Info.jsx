@@ -7,34 +7,46 @@ const Info = () => {
     const BACKEND = import.meta.env.VITE_BACKEND_URL;
 
 const login = async (username, password) => {
-//   const formData = new FormData();
-//   formData.append("nickname", nickname);  // 서버 요구 사항 확인!
-//   formData.append("password", password);
-  // 수정: JSON payload 생성
   const payload = { username, password };
 
   try {
     const res = await fetch(`${BACKEND}/api/login`, {
       method: "POST",
-      //body: formData,
       headers: {
-      "Content-Type": "application/json"
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(payload),
-      //credentials: "include", // ← Refresh Token 받기용 쿠키 설정
     });
 
-    const accessToken = res.headers.get("access");
-
-    if (res.ok && accessToken) {
-      // 1) 토큰 저장
-      localStorage.setItem("accessToken", accessToken);
-
-      alert("로그인 성공!");
-      nav("/");
+    const contentType = res.headers.get("content-type");
+    
+    if (res.ok) {
+      if (contentType && contentType.includes("application/json")) {
+        const result = await res.json();
+        if (result.accessToken) {
+          // 토큰 저장
+          localStorage.setItem("accessToken", result.accessToken);
+          alert("로그인 성공!");
+          nav("/");
+        } else {
+          alert("로그인 실패: 토큰을 받지 못했습니다.");
+        }
+      } else {
+        // JSON이 아닌 응답인 경우
+        const text = await res.text();
+        console.log("서버 응답:", text);
+        alert("로그인 성공!");
+        nav("/");
+      }
     } else {
-      const error = await res.json();
-      alert(error.reason || "로그인 실패");
+      // 에러 응답 처리
+      if (contentType && contentType.includes("application/json")) {
+        const errorResult = await res.json();
+        alert("로그인 실패: " + (errorResult.reason || errorResult.message || "알 수 없는 오류"));
+      } else {
+        const errorText = await res.text();
+        alert("로그인 실패: " + errorText);
+      }
     }
   } catch (err) {
     console.error("로그인 오류:", err);
