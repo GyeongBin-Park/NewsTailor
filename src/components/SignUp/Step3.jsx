@@ -143,7 +143,7 @@ const Step3 = ({onNext}) => {
                         type="submit"
                         disabled={!allChecked}
                         className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg
-                        ${!allChecked ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#401E63] text-white'}`}
+                        ${!allChecked ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
                     >
                         계속하기
                     </button>

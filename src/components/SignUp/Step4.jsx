@@ -29,7 +29,7 @@ const Step4 = ({data}) => {
 
                 <div className="absolute bottom-[34px] left-1/2 -translate-x-1/2">
                     <button 
-                        className={"border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg bg-[#401E63] text-white"}
+                        className={"border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg bg-[#39235C] text-white"}
                         onClick={() => nav("/login")}
                     >
                         로그인 하고 시작하기

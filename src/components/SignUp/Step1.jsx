@@ -129,7 +129,7 @@ const Step1 = ({onNext}) => {
                     />
                     <button
                     type="button"
-                    className="absolute top-[12.5px] right-[10px] w-[58px] h-[26px] rounded-md bg-[#401E63] text-white text-[13px] outline-none border-none focus:outline-none active:bg-[#401E63] active:outline-none"
+                    className="absolute top-[12.5px] right-[10px] w-[58px] h-[26px] rounded-md bg-[#39235C] text-white text-[13px] outline-none border-none focus:outline-none active:bg-[#39235C] active:outline-none"
                     onClick={() => checkDuplicate(username)}
                     >
                     중복확인
@@ -186,7 +186,7 @@ const Step1 = ({onNext}) => {
                         type="submit"
                         disabled={!isActive}
                         className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg
-                        ${!isActive ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#401E63] text-white'}`}
+                        ${!isActive ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
                     >
                         계속하기
                     </button>
