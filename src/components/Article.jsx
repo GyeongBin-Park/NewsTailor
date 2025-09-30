@@ -9,23 +9,12 @@ import BookmarkFilledIcon from "../icons/bookmark_o.svg";
 
 export default function Article({ article, isBookmarked, onToggleBookmark }) {
   const { title, content } = article;
-  // const [bookmarked, setBookmarked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [audioPlayer, setAudioPlayer] = useState(null);
 
   // Speechify API를 위한 상태 변수 추가
   const [voices, setVoices] = useState([]); // API로부터 받아온 전체 목소리 목록
   const [selectedVoiceId, setSelectedVoiceId] = useState(""); // 선택된 목소리의 'id'
-  const [speed, setSpeed] = useState(1);
-
-  // useEffect(() => {
-  //   const saved = localStorage.getItem(`bookmark-${title}`);
-  //   setBookmarked(saved === "true");
-  // }, [title]);
-
-  // useEffect(() => {
-  //   localStorage.setItem(`bookmark-${title}`, bookmarked);
-  // }, [bookmarked, title]);
 
   useEffect(() => {
     const fetchVoices = async () => {
@@ -73,8 +62,6 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
     fetchVoices();
   }, []);
 
-  // const toggleBookmark = () => setBookmarked(!bookmarked);
-
   const handleCopy = () => {
     navigator.clipboard
       .writeText(content)
@@ -120,7 +107,7 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
       const base64Audio = data.audio_data;
       const audioFormat = data.audio_format || "wav"; // 'wav'가 기본값
 
-      // atob 함수는 Base64 문자열을 디코딩합니다.
+      // atob 함수는 Base64 문자열 디코딩
       const byteCharacters = atob(base64Audio);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -197,24 +184,6 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
               <option>로딩 중...</option>
             )}
           </select>
-        </div>
-        <div>
-          <label
-            htmlFor={`speed-range-${title}`}
-            className="font-semibold text-gray-600"
-          >
-            속도: {speed.toFixed(1)}x
-          </label>
-          <input
-            id={`speed-range-${title}`}
-            type="range"
-            min="0.5"
-            max="2.5"
-            step="0.1"
-            value={speed}
-            onChange={(e) => setSpeed(parseFloat(e.target.value))}
-            className="w-full mt-2"
-          />
         </div>
       </div>
 
