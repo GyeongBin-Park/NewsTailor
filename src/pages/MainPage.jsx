@@ -15,15 +15,17 @@ export default function MainPage() {
   const [bookmarks, setBookmarks] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const [articles, setArticles] = useState([]);
 
   // ---  임시 사용자 아이디 (실제로는 로그인 정보에서 가져와야 함) ---
   const userId = "user123";
 
+  const BOOKMARK_KEY = `bookmarked_articles_${userId}`;
+
   useEffect(() => {
-    const savedBookmarks =
-      JSON.parse(localStorage.getItem("bookmarked_articles")) || [];
+    const savedBookmarks = JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || [];
     setBookmarks(savedBookmarks);
-  }, []);
+  }, [userId]);
 
   const handleToggleBookmark = (article) => {
     const isAlreadyBookmarked = bookmarks.some((b) => b.id === article.id);
@@ -55,11 +57,24 @@ export default function MainPage() {
     };
   }, []);
 
-  const articles = [
-    { id: 1, title: "안녕하세요", content: "반갑습니다. 이것은 테스트입니다." },
-    { id: 2, title: "Hello", content: "everyone" },
-    { id: 3, title: "Head Line", content: "Article" },
-  ];
+  useEffect(() => {
+    // 실제로는 fetch나 axios 같은 라이브러리를 사용합니다.
+    const fetchArticles = () => {
+      // --- API 호출 시뮬레이션 ---
+      const fetchedData = [
+        {
+          id: 1,
+          title: "안녕하세요",
+          content: "반갑습니다. 이것은 테스트입니다.",
+        },
+        { id: 2, title: "Hello", content: "everyone" },
+        { id: 3, title: "Head Line", content: "Article" },
+      ];
+      setArticles(fetchedData);
+    };
+
+    fetchArticles();
+  }, []);
 
   const detectLanguage = (text) => {
     const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ가-힣]/;
@@ -106,12 +121,13 @@ export default function MainPage() {
         <img src={LogoIcon} alt="Logo" className="w-10 h-10" />
         <img src={TextLogo} alt="News Tailor Logo" className="h-10" />
         <div className="relative">
-           <img
-             src={PersonIcon}
-             alt="Person Logo"
-             className="w-8 h-8 cursor-pointer"
-             onClick={() => setIsMenuOpen(!isMenuOpen)}
-           />
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="사용자 메뉴 열기"
+            className="cursor-pointer"
+          >
+            <img src={PersonIcon} alt="Person Logo" className="w-8 h-8" />
+          </button>
           {/* isMenuOpen이 true일 때만 드롭다운 메뉴 표시 */}
           {isMenuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border z-10">
@@ -133,12 +149,17 @@ export default function MainPage() {
       {/* Section Title */}
       <section className="flex items-center justify-between px-4 mt-4 mb-2">
         <h2 className="text-xl font-bold">Today’s News Paper</h2>
-        <img
-          src={isSpeaking ? VolumeFilledIcon : VolumeIcon}
-          alt="volume"
-          className="w-6 h-6 cursor-pointer"
+        <button
           onClick={handleSpeak}
-        />
+          aria-label={isSpeaking ? "음성 읽기 중지" : "뉴스 제목 전체 듣기"}
+          className="cursor-pointer"
+        >
+          <img
+            src={isSpeaking ? VolumeFilledIcon : VolumeIcon}
+            alt="volume"
+            className="w-6 h-6 cursor-pointer"
+          />
+        </button>
       </section>
 
       {/* Articles */}
