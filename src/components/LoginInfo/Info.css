@@ -81,7 +81,7 @@
 .login_checkbox {
     width: 16px;
     height: 16px;
-    accent-color: rgba(255, 38, 85, 1);
+    accent-color: #39235C;
 }
 
 .label_box {
@@ -161,6 +161,6 @@
 }
 
 .rej_login_button {
-    background-color: #401E63;
+    background-color: #39235C;
     color: white;
 }

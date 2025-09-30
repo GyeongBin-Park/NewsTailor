@@ -1,7 +1,6 @@
 import {useForm} from "react-hook-form";
 import StepIndicator from "./StepIndicator";
 import { useState } from "react";
-import { BACKEND } from "../../api/auth";
 
 import politicsX from "../../icons/politics_x.svg";
 import politicsO from "../../icons/politics_o.svg";
@@ -99,7 +98,7 @@ const Step2 = ({onNext}) => {
                         type="submit"
                         disabled={selectedCategories.length === 0}
                         className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg
-                        ${selectedCategories.length === 0 ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#401E63] text-white'}`}
+                        ${selectedCategories.length === 0 ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
                     >
                         계속하기
                     </button>
