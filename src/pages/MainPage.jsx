@@ -102,7 +102,7 @@ export default function MainPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="flex items-center justify-between pl-4 pr-6 py-3 bg-[#39235C]">
+      <header className="flex items-center justify-between pl-4 pr-6 h-[60px] bg-[#39235C] text-white border-b border-[#E6E6E6]">
         <img src={LogoIcon} alt="Logo" className="w-10 h-10" />
         <img src={TextLogo} alt="News Tailor Logo" className="h-10" />
         <div className="relative">

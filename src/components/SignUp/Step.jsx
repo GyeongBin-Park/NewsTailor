@@ -42,15 +42,33 @@ const Step = () => {
                 body: JSON.stringify(payload),
             });
 
-            const result = await response.json();
-
-            if (result.success) {
-                alert("🎉 회원가입 성공!");
-                setStep(4); // Step4로 이동
-            } 
+            const contentType = response.headers.get("content-type");
             
-            else {
-                alert("❌ 실패: " + result.reason);
+            if (response.ok) {
+                if (contentType && contentType.includes("application/json")) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert("🎉 회원가입 성공!");
+                        setStep(4); // Step4로 이동
+                    } else {
+                        alert("❌ 실패: " + result.reason);
+                    }
+                } else {
+                    // JSON이 아닌 응답인 경우 (예: "회원가입 성공" 텍스트)
+                    const text = await response.text();
+                    console.log("서버 응답:", text);
+                    alert("🎉 회원가입 성공!");
+                    setStep(4); // Step4로 이동
+                }
+            } else {
+                // 에러 응답 처리
+                if (contentType && contentType.includes("application/json")) {
+                    const errorResult = await response.json();
+                    alert("❌ 실패: " + (errorResult.reason || errorResult.message || "알 수 없는 오류"));
+                } else {
+                    const errorText = await response.text();
+                    alert("❌ 실패: " + errorText);
+                }
             }
         } 
         

@@ -26,7 +26,7 @@ const NavItem = ({ to, activeIcon, inactiveIcon, alt }) => {
 
 export default function Footer() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white flex justify-around items-center h-16">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white flex justify-around items-center h-16 border-t border-[#E6E6E6]">
       <NavItem
         to="/"
         activeIcon={HomeFilledIcon}

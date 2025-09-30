@@ -115,7 +115,7 @@ const Step1 = ({onNext}) => {
                     <input 
                         placeholder="사용자의 이름을 입력해주세요" 
                         {...register("name", {required:true})} 
-                        className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6]"
+                        className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6] caret-[#39235C]"
                     />
                 </div>
 
@@ -125,7 +125,7 @@ const Step1 = ({onNext}) => {
                     <input 
                         placeholder="아이디를 입력해주세요" 
                         {...register("username", {required:true})} 
-                        className="w-full h-[51px] py-[16px] px-[15px] pr-[75px] border rounded-md border-[#E6E6E6] relative"
+                        className="w-full h-[51px] py-[16px] px-[15px] pr-[75px] border rounded-md border-[#E6E6E6] relative caret-[#39235C]"
                     />
                     <button
                     type="button"
@@ -134,9 +134,11 @@ const Step1 = ({onNext}) => {
                     >
                     중복확인
                     </button>
-                    {idError && (
-                        <p className="text-sm">{idError}</p>
-                    )}
+                    </div>
+                    <div className="h-[20px]">
+                        {idError && (
+                            <p className="text-[#FF2655] text-sm ml-[5px]">{idError}</p>
+                        )}
                     </div>
                 </div>
 
@@ -157,11 +159,13 @@ const Step1 = ({onNext}) => {
                                 message: "특수 문자를 1개 이상 포함해서 입력해주세요.",
                             }
                         })} 
-                        className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6]"
+                        className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6] caret-[#39235C]"
                     />
-                    {errors.password && (
-                        <p className="text-[#FF2655] text-sm">{errors.password.message}</p>
-                    )}
+                    <div className="h-[20px]">
+                        {errors.password && (
+                            <p className="text-[#FF2655] text-sm ml-[5px]">{errors.password.message}</p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="mt-[37px]">
@@ -174,11 +178,13 @@ const Step1 = ({onNext}) => {
                             required:true,
                             validate: (value) => value === pwValue || "동일한 비밀번호를 입력해주세요.",
                         })} 
-                        className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6]"
+                        className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6] caret-[#39235C]"
                     />
-                    {errors.pw_valid && (
-                        <p className="text-[#FF2655] text-sm">{errors.pw_valid.message}</p>
-                    )}
+                    <div className="h-[20px]">
+                        {errors.pw_valid && (
+                            <p className="text-[#FF2655] text-sm ml-[5px]">{errors.pw_valid.message}</p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="absolute bottom-[34px]">
