@@ -9,6 +9,7 @@ import BookmarkPage from "./pages/BookmarkPage";
 import Step3Test from "./components/SignUp/Step3Test";
 import MyPage from "./pages/MyPage";
 import EditProfilePage from "./pages/EditProfilePage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/step3-test" element={<Step3Test />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/edit" element={<EditProfilePage />} />
+          <Route path="/mypage/change-password" element={<ChangePasswordPage />} />
         </Routes>
       </BrowserRouter>
     </div>

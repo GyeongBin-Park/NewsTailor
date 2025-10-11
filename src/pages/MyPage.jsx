@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BackIcon from "../icons/back.svg";
+import UserIcon from "../icons/user_o.svg";
 
 const VOICE_STORAGE_KEY = "user_selected_voice_id";
 
@@ -140,9 +141,9 @@ export default function MyPage() {
         {/* 사용자 프로필 섹션 */}
         <section className="bg-white rounded-2xl p-6 shadow-sm">
           {isLoggedIn ? (
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#39235C] to-[#F1C40F] rounded-full flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">{userInfo.nickname.charAt(0).toUpperCase()}</span>
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#39235C] to-[#F1C40F] rounded-full flex items-center justify-center p-4">
+                <img src={UserIcon} alt="user" className="w-full h-full" style={{ filter: 'brightness(0) saturate(100%) invert(98%) sepia(5%) saturate(300%) hue-rotate(20deg) brightness(105%)' }} />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">{userInfo.nickname}</h2>
@@ -217,12 +218,12 @@ export default function MyPage() {
                 >
                   프로필 수정
                 </MenuItem>
-                <MenuItem 
-                  onClick={() => alert("비밀번호 변경 페이지로 이동합니다.")} 
-                  icon="🔒"
-                >
-                  비밀번호 변경
-                </MenuItem>
+            <MenuItem 
+              onClick={() => navigate("/mypage/change-password")} 
+              icon="🔒"
+            >
+              비밀번호 변경
+            </MenuItem>
                 <MenuItem 
                   onClick={handleLogout} 
                   icon="🚪"
