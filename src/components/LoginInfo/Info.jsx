@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Info.css";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const Info = () => {
 
@@ -27,10 +28,10 @@ const login = async (username, password) => {
           // 토큰과 사용자 정보 저장
           localStorage.setItem("accessToken", result.accessToken);
           localStorage.setItem("username", username);
-          alert("로그인 성공!");
+          toast.success("로그인 성공!");
           nav("/");
         } else {
-          alert("로그인 실패: 토큰을 받지 못했습니다.");
+          toast.error("로그인 실패: 토큰을 받지 못했습니다.");
         }
       } else {
         // JSON이 아닌 응답인 경우
@@ -38,22 +39,22 @@ const login = async (username, password) => {
         console.log("서버 응답:", text);
         // 텍스트 응답이어도 성공으로 간주하고 username 저장
         localStorage.setItem("username", username);
-        alert("로그인 성공!");
+        toast.success("로그인 성공!");
         nav("/");
       }
     } else {
       // 에러 응답 처리
       if (contentType && contentType.includes("application/json")) {
         const errorResult = await res.json();
-        alert("로그인 실패: " + (errorResult.reason || errorResult.message || "알 수 없는 오류"));
+        toast.error("로그인 실패: " + (errorResult.reason || errorResult.message || "알 수 없는 오류"));
       } else {
         const errorText = await res.text();
-        alert("로그인 실패: " + errorText);
+        toast.error("로그인 실패: " + errorText);
       }
     }
   } catch (err) {
     console.error("로그인 오류:", err);
-    alert("서버 오류가 발생했습니다.");
+    toast.error("서버 오류가 발생했습니다.");
   }
 };
 
@@ -83,8 +84,15 @@ const login = async (username, password) => {
         setActive(isActive);
     }, [id, pw]);
 
-    const handleLogin = async () => {
+    const handleLogin = async (e) => {
+        if (e) e.preventDefault();
         await login(inputs.id, inputs.pw);
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && active) {
+            handleLogin(e);
+        }
     };
 
     return (
@@ -97,14 +105,14 @@ const login = async (username, password) => {
 
             <div className="main_wrapper">
                 <div>
-                    <form className="info_wrapper">
+                    <form className="info_wrapper" onSubmit={handleLogin}>
                     <input 
                         type="id" 
                         name="id"
                         value={id}
                         onChange={onChange}
                         placeholder="아이디를 입력해주세요"
-                        
+                        onKeyPress={handleKeyPress}
                     />
                     <input 
                         type="password"
@@ -112,8 +120,8 @@ const login = async (username, password) => {
                         value={pw}
                         onChange={onChange}
                         autoComplete="off"
-                        placeholder="비밀번호를 입력해주세요" 
-                        
+                        placeholder="비밀번호를 입력해주세요"
+                        onKeyPress={handleKeyPress}
                     />
                     </form>
                 </div>
