@@ -1,117 +1,124 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+
 import Article from "../components/Article";
 import Footer from "../components/Footer";
 
-import VolumeIcon from "../icons/volume_x.svg";
-import VolumeFilledIcon from "../icons/volume_o.svg";
 import TextLogo from "../icons/text_logo.png";
 import LogoIcon from "/favicon-96x96.png";
 import PersonIcon from "../icons/person.png";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 export default function MainPage() {
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [voices, setVoices] = useState([]);
-  const [bookmarks, setBookmarks] = useState([]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+
   const [articles, setArticles] = useState([]);
-
-  // ---  임시 사용자 아이디 (실제로는 로그인 정보에서 가져와야 함) ---
-  const userId = "user123";
-
-  const BOOKMARK_KEY = `bookmarked_articles_${userId}`;
-
-  useEffect(() => {
-    const savedBookmarks = JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || [];
-    setBookmarks(savedBookmarks);
-  }, [userId]);
-
-  const handleToggleBookmark = (article) => {
-    const isAlreadyBookmarked = bookmarks.some((b) => b.id === article.id);
-    let newBookmarks = [];
-
-    if (isAlreadyBookmarked) {
-      newBookmarks = bookmarks.filter((b) => b.id !== article.id);
-    } else {
-      newBookmarks = [...bookmarks, article];
-    }
-
-    setBookmarks(newBookmarks);
-    localStorage.setItem("bookmarked_articles", JSON.stringify(newBookmarks));
-  };
-
-  // 컴포넌트가 처음 렌더링될 때 목소리 목록을 불러옴
-  useEffect(() => {
-    const loadVoices = () => {
-      setVoices(window.speechSynthesis.getVoices());
-    };
-
-    // 목소리가 변경(로드)되면 loadVoices 함수 호출
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    loadVoices(); // 초기 로드
-
-    // 컴포넌트가 사라질 때 이벤트 리스너를 정리함
-    return () => {
-      window.speechSynthesis.onvoiceschanged = null;
-    };
-  }, []);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userInfo, setUserInfo] = useState({ username: "", nickname: "" });
 
   useEffect(() => {
-    // 실제로는 fetch나 axios 같은 라이브러리를 사용합니다.
-    const fetchArticles = () => {
-      // --- API 호출 시뮬레이션 ---
-      const fetchedData = [
-        {
-          id: 1,
-          title: "안녕하세요",
-          content: "반갑습니다. 이것은 테스트입니다.",
-        },
-        { id: 2, title: "Hello", content: "everyone" },
-        { id: 3, title: "Head Line", content: "Article" },
-      ];
-      setArticles(fetchedData);
-    };
+    const token = localStorage.getItem("accessToken");
+    const username = localStorage.getItem("username");
+    const nickname = localStorage.getItem("nickname");
 
-    fetchArticles();
-  }, []);
-
-  const detectLanguage = (text) => {
-    const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ가-힣]/;
-    return koreanRegex.test(text) ? "ko-KR" : "en-US";
-  };
-
-  const handleSpeak = () => {
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+    if (!token || !username) {
+      toast.error("로그인이 필요합니다.");
+      navigate("/login");
       return;
     }
+    setUserInfo({ username, nickname: nickname || username });
+  }, [navigate]);
 
-    const synth = window.speechSynthesis;
-    setIsSpeaking(true);
+  const fetchNews = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    const token = localStorage.getItem("accessToken");
 
-    articles.forEach((article, index) => {
-      const utterance = new SpeechSynthesisUtterance(article.title);
-      utterance.lang = detectLanguage(article.title);
-      const voice = voices.find((v) => v.lang.startsWith(utterance.lang));
-      if (voice) utterance.voice = voice;
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/news`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true",
+        },
+      });
 
-      if (index == articles.length - 1) {
-        utterance.onend = () => {
-          setIsSpeaking(false);
-        };
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          toast.error("인증이 만료되었습니다. 다시 로그인해주세요.");
+          handleLogout(); // 로그아웃 처리
+        }
+        throw new Error("뉴스 목록을 불러오는 데 실패했습니다.");
       }
 
-      synth.speak(utterance);
-    });
+      const data = await response.json();
+      // API 응답에서 isBookmarked 값을 확인하여 초기 북마크 상태 설정
+      const initialBookmarks = data.content.filter(
+        (article) => article.isBookmarked
+      );
+      setArticles(data.content);
+    } catch (err) {
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (userInfo.username) {
+      fetchNews();
+    }
+  }, [userInfo.username, fetchNews]);
+
+  const handleToggleBookmark = async (articleToToggle) => {
+    const token = localStorage.getItem("accessToken");
+
+    const articleInState = articles.find((a) => a.id === articleToToggle.id);
+    if (!articleInState) return;
+
+    const isBookmarked = articleInState.isBookmarked;
+    const endpoint = `${BACKEND_URL}/api/news/${articleToToggle.id}/bookmark`;
+    const method = isBookmarked ? "DELETE" : "POST";
+
+    try {
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("북마크 처리에 실패했습니다.");
+      }
+
+      setArticles(
+        articles.map((article) =>
+          article.id === articleToToggle.id
+            ? { ...article, isBookmarked: !isBookmarked }
+            : article
+        )
+      );
+      toast.success(
+        isBookmarked ? "북마크가 삭제되었습니다." : "북마크에 추가되었습니다."
+      );
+    } catch (err) {
+      toast.error(err.message);
+      console.error(err);
+    }
   };
 
-  // 로그아웃 처리 함수
   const handleLogout = () => {
-    console.log("로그아웃 되었습니다.");
-    setIsMenuOpen(false); // 메뉴 닫기
-    navigate("/login"); // 로그인 페이지로 이동
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("username");
+    localStorage.removeItem("nickname");
+    toast.success("로그아웃 되었습니다.");
+    setIsMenuOpen(false);
+    navigate("/login");
   };
 
   return (
@@ -128,11 +135,10 @@ export default function MainPage() {
           >
             <img src={PersonIcon} alt="Person Logo" className="w-8 h-8" />
           </button>
-          {/* isMenuOpen이 true일 때만 드롭다운 메뉴 표시 */}
           {isMenuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border z-10">
               <div className="px-4 py-2 text-sm text-gray-700">
-                아이디: <strong>{userId}</strong>
+                아이디: <strong>{userInfo.username}</strong>
               </div>
               <div className="border-t border-gray-100"></div>
               <button
@@ -149,29 +155,31 @@ export default function MainPage() {
       {/* Section Title */}
       <section className="flex items-center justify-between px-4 mt-4 mb-2">
         <h2 className="text-xl font-bold">Today’s News Paper</h2>
-        <button
-          onClick={handleSpeak}
-          aria-label={isSpeaking ? "음성 읽기 중지" : "뉴스 제목 전체 듣기"}
-          className="cursor-pointer"
-        >
-          <img
-            src={isSpeaking ? VolumeFilledIcon : VolumeIcon}
-            alt="volume"
-            className="w-6 h-6 cursor-pointer"
-          />
-        </button>
       </section>
 
       {/* Articles */}
       <main className="space-y-4 px-4">
-        {articles.map((a) => (
-          <Article
-            key={a.id}
-            article={a}
-            isBookmarked={bookmarks.some((b) => b.id === a.id)}
-            onToggleBookmark={handleToggleBookmark}
-          />
-        ))}
+        {isLoading && (
+          <p className="text-center text-gray-500 mt-10">
+            기사를 불러오는 중...
+          </p>
+        )}
+        {error && <p className="text-center text-red-500 mt-10">{error}</p>}
+
+        {!isLoading && !error && articles.length > 0
+          ? articles.map((a) => (
+              <Article
+                key={a.id}
+                article={a}
+                isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
+                onToggleBookmark={() => handleToggleBookmark(a)}
+              />
+            ))
+          : !isLoading && (
+              <p className="text-center text-gray-500 mt-10">
+                표시할 뉴스가 없습니다.
+              </p>
+            )}
       </main>
 
       <Footer />
