@@ -45,6 +45,10 @@ const Step = () => {
             const contentType = response.headers.get("content-type");
             
             if (response.ok) {
+                // 회원가입 성공 시 사용자 정보 저장
+                localStorage.setItem("nickname", data.name);
+                localStorage.setItem("interests", JSON.stringify(data.interestIds));
+                
                 if (contentType && contentType.includes("application/json")) {
                     const result = await response.json();
                     if (result.success) {

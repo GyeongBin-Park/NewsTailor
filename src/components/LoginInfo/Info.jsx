@@ -24,8 +24,9 @@ const login = async (username, password) => {
       if (contentType && contentType.includes("application/json")) {
         const result = await res.json();
         if (result.accessToken) {
-          // 토큰 저장
+          // 토큰과 사용자 정보 저장
           localStorage.setItem("accessToken", result.accessToken);
+          localStorage.setItem("username", username);
           alert("로그인 성공!");
           nav("/");
         } else {
@@ -35,6 +36,8 @@ const login = async (username, password) => {
         // JSON이 아닌 응답인 경우
         const text = await res.text();
         console.log("서버 응답:", text);
+        // 텍스트 응답이어도 성공으로 간주하고 username 저장
+        localStorage.setItem("username", username);
         alert("로그인 성공!");
         nav("/");
       }
