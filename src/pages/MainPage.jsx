@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import Article from "../components/Article";
 import Footer from "../components/Footer";
+import SideMenu from "../components/SideMenu";
 
 import VolumeIcon from "../icons/volume_x.svg";
 import VolumeFilledIcon from "../icons/volume_o.svg";
 import TextLogo from "../icons/text_logo.png";
 import LogoIcon from "/favicon-96x96.png";
-import PersonIcon from "../icons/person.png";
 
 export default function MainPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
 
-  // ---  임시 사용자 아이디 (실제로는 로그인 정보에서 가져와야 함) ---
-  const userId = "user123";
-
+  const userId = localStorage.getItem("username") || "guest";
   const BOOKMARK_KEY = `bookmarked_articles_${userId}`;
 
   useEffect(() => {
@@ -107,48 +105,18 @@ export default function MainPage() {
     });
   };
 
-  // 로그아웃 처리 함수
-  const handleLogout = () => {
-    console.log("로그아웃 되었습니다.");
-    setIsMenuOpen(false); // 메뉴 닫기
-    navigate("/login"); // 로그인 페이지로 이동
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="flex items-center justify-between pl-4 pr-6 h-[60px] bg-[#39235C] text-white border-b border-[#E6E6E6]">
+      <header className="flex items-center justify-between pl-4 pr-6 h-[60px] bg-[#39235C] text-white">
         <img src={LogoIcon} alt="Logo" className="w-10 h-10" />
         <img src={TextLogo} alt="News Tailor Logo" className="h-10" />
-        <div className="relative">
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="사용자 메뉴 열기"
-            className="cursor-pointer"
-          >
-            <img src={PersonIcon} alt="Person Logo" className="w-8 h-8" />
-          </button>
-          {/* isMenuOpen이 true일 때만 드롭다운 메뉴 표시 */}
-          {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border z-10">
-              <div className="px-4 py-2 text-sm text-gray-700">
-                아이디: <strong>{userId}</strong>
-              </div>
-              <div className="border-t border-gray-100"></div>
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                로그아웃
-              </button>
-            </div>
-          )}
-        </div>
+        <SideMenu />
       </header>
 
       {/* Section Title */}
       <section className="flex items-center justify-between px-4 mt-4 mb-2">
-        <h2 className="text-xl font-bold">Today’s News Paper</h2>
+        <h2 className="text-xl font-bold">Today's News Paper</h2>
         <button
           onClick={handleSpeak}
           aria-label={isSpeaking ? "음성 읽기 중지" : "뉴스 제목 전체 듣기"}

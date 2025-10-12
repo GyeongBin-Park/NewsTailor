@@ -34,3 +34,11 @@
     font-size: 18px;
     line-height: 21px;
 }
+
+.menu_wrapper {
+    position: absolute;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}

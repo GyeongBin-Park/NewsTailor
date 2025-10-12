@@ -1,4 +1,5 @@
 import "./Header.css";
+import SideMenu from "./SideMenu";
 
 const Header = ({left_img, text, onClick}) => {
     return (
@@ -12,6 +13,10 @@ const Header = ({left_img, text, onClick}) => {
 
             <div className="text_wrapper">
                 {text}
+            </div>
+
+            <div className="menu_wrapper">
+                <SideMenu />
             </div>
         </div>
     )
