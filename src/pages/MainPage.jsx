@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import Article from "../components/Article";
 import Footer from "../components/Footer";
@@ -10,70 +10,138 @@ import VolumeFilledIcon from "../icons/volume_o.svg";
 import TextLogo from "../icons/text_logo.png";
 import LogoIcon from "/favicon-96x96.png";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 export default function MainPage() {
+  const navigate = useNavigate();
+  
+  const [articles, setArticles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userInfo, setUserInfo] = useState({ username: "", nickname: "" });
+  
+  // 음성 관련 상태 추가
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
-  const [bookmarks, setBookmarks] = useState([]);
-  const navigate = useNavigate();
-  const [articles, setArticles] = useState([]);
 
-  const userId = localStorage.getItem("username") || "guest";
-  const BOOKMARK_KEY = `bookmarked_articles_${userId}`;
-
+  // 로그인 상태 확인
   useEffect(() => {
-    const savedBookmarks = JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || [];
-    setBookmarks(savedBookmarks);
-  }, [userId]);
+    const token = localStorage.getItem("accessToken");
+    const username = localStorage.getItem("username");
+    const nickname = localStorage.getItem("nickname");
 
-  const handleToggleBookmark = (article) => {
-    const isAlreadyBookmarked = bookmarks.some((b) => b.id === article.id);
-    let newBookmarks = [];
-
-    if (isAlreadyBookmarked) {
-      newBookmarks = bookmarks.filter((b) => b.id !== article.id);
-    } else {
-      newBookmarks = [...bookmarks, article];
+    if (!token || !username) {
+      toast.error("로그인이 필요합니다.");
+      navigate("/login");
+      return;
     }
+    setUserInfo({ username, nickname: nickname || username });
+  }, [navigate]);
 
-    setBookmarks(newBookmarks);
-    localStorage.setItem("bookmarked_articles", JSON.stringify(newBookmarks));
-  };
-
-  // 컴포넌트가 처음 렌더링될 때 목소리 목록을 불러옴
+  // 음성 목록 불러오기
   useEffect(() => {
     const loadVoices = () => {
       setVoices(window.speechSynthesis.getVoices());
     };
 
-    // 목소리가 변경(로드)되면 loadVoices 함수 호출
     window.speechSynthesis.onvoiceschanged = loadVoices;
-    loadVoices(); // 초기 로드
+    loadVoices();
 
-    // 컴포넌트가 사라질 때 이벤트 리스너를 정리함
     return () => {
       window.speechSynthesis.onvoiceschanged = null;
     };
   }, []);
 
-  useEffect(() => {
-    // 실제로는 fetch나 axios 같은 라이브러리를 사용합니다.
-    const fetchArticles = () => {
-      // --- API 호출 시뮬레이션 ---
-      const fetchedData = [
-        {
-          id: 1,
-          title: "안녕하세요",
-          content: "반갑습니다. 이것은 테스트입니다.",
+  // 로그아웃 처리
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("username");
+    localStorage.removeItem("nickname");
+    localStorage.removeItem("interests");
+    toast.success("로그아웃 되었습니다.");
+    navigate("/login");
+  };
+
+  const fetchNews = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    const token = localStorage.getItem("accessToken");
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/news`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true",
         },
-        { id: 2, title: "Hello", content: "everyone" },
-        { id: 3, title: "Head Line", content: "Article" },
-      ];
-      setArticles(fetchedData);
-    };
+      });
 
-    fetchArticles();
-  }, []);
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          toast.error("인증이 만료되었습니다. 다시 로그인해주세요.");
+          handleLogout(); // 로그아웃 처리
+        }
+        throw new Error("뉴스 목록을 불러오는 데 실패했습니다.");
+      }
 
+      const data = await response.json();
+      // API 응답에서 isBookmarked 값을 확인하여 초기 북마크 상태 설정
+      const initialBookmarks = data.content.filter(
+        (article) => article.isBookmarked
+      );
+      setArticles(data.content);
+    } catch (err) {
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (userInfo.username) {
+      fetchNews();
+    }
+  }, [userInfo.username, fetchNews]);
+
+  const handleToggleBookmark = async (articleToToggle) => {
+    const token = localStorage.getItem("accessToken");
+
+    const articleInState = articles.find((a) => a.id === articleToToggle.id);
+    if (!articleInState) return;
+
+    const isBookmarked = articleInState.isBookmarked;
+    const endpoint = `${BACKEND_URL}/api/news/${articleToToggle.id}/bookmark`;
+    const method = isBookmarked ? "DELETE" : "POST";
+
+    try {
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("북마크 처리에 실패했습니다.");
+      }
+
+      setArticles(
+        articles.map((article) =>
+          article.id === articleToToggle.id
+            ? { ...article, isBookmarked: !isBookmarked }
+            : article
+        )
+      );
+      toast.success(
+        isBookmarked ? "북마크가 삭제되었습니다." : "북마크에 추가되었습니다."
+      );
+    } catch (err) {
+      toast.error(err.message);
+      console.error(err);
+    }
+  };
+
+  // 음성 읽기 기능
   const detectLanguage = (text) => {
     const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ가-힣]/;
     return koreanRegex.test(text) ? "ko-KR" : "en-US";
@@ -95,7 +163,7 @@ export default function MainPage() {
       const voice = voices.find((v) => v.lang.startsWith(utterance.lang));
       if (voice) utterance.voice = voice;
 
-      if (index == articles.length - 1) {
+      if (index === articles.length - 1) {
         utterance.onend = () => {
           setIsSpeaking(false);
         };
@@ -132,14 +200,27 @@ export default function MainPage() {
 
       {/* Articles */}
       <main className="space-y-4 px-4">
-        {articles.map((a) => (
-          <Article
-            key={a.id}
-            article={a}
-            isBookmarked={bookmarks.some((b) => b.id === a.id)}
-            onToggleBookmark={handleToggleBookmark}
-          />
-        ))}
+        {isLoading && (
+          <p className="text-center text-gray-500 mt-10">
+            기사를 불러오는 중...
+          </p>
+        )}
+        {error && <p className="text-center text-red-500 mt-10">{error}</p>}
+
+        {!isLoading && !error && articles.length > 0
+          ? articles.map((a) => (
+              <Article
+                key={a.id}
+                article={a}
+                isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
+                onToggleBookmark={() => handleToggleBookmark(a)}
+              />
+            ))
+          : !isLoading && (
+              <p className="text-center text-gray-500 mt-10">
+                표시할 뉴스가 없습니다.
+              </p>
+            )}
       </main>
 
       <Footer />

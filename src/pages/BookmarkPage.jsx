@@ -9,26 +9,38 @@ export default function BookmarkPage() {
   const navigate = useNavigate();
   const [bookmarks, setBookmarks] = useState([]);
 
+  const userId = localStorage.getItem("username");
+  const BOOKMARK_KEY = `bookmarked_articles_${userId}`;
+
   useEffect(() => {
+    if (!userId) {
+      alert("로그인이 필요한 서비스입니다.");
+      navigate("/login");
+      return;
+    }
+
     const loadBookmarks = () => {
       const savedBookmarks =
-        JSON.parse(localStorage.getItem("bookmarked_articles")) || [];
+        JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || [];
       setBookmarks(savedBookmarks);
     };
     loadBookmarks();
 
-    // 페이지 이동하고 돌아왔을 때 목록 새로고침
     window.addEventListener("focus", loadBookmarks);
     return () => {
       window.removeEventListener("focus", loadBookmarks);
     };
-  }, []);
+  }, [userId, navigate, BOOKMARK_KEY]);
 
   const handleToggleBookmark = (article) => {
     const newBookmarks = bookmarks.filter((b) => b.id !== article.id);
     setBookmarks(newBookmarks);
-    localStorage.setItem("bookmarked_articles", JSON.stringify(newBookmarks));
+    localStorage.setItem(BOOKMARK_KEY, JSON.stringify(newBookmarks));
   };
+
+  if (!userId) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
