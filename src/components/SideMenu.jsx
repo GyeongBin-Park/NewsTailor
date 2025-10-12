@@ -13,13 +13,18 @@ export default function SideMenu() {
     const token = localStorage.getItem("accessToken");
     const username = localStorage.getItem("username");
     
-    if (token && username) {
-      setIsLoggedIn(true);
-      setUserInfo({
-        username: username,
-        nickname: localStorage.getItem("nickname") || username,
-      });
+    // 토큰이나 사용자명이 없으면 로그인 안 된 상태로 처리
+    if (!token || !username) {
+      setIsLoggedIn(false);
+      setUserInfo({ username: "", nickname: "" });
+      return;
     }
+    
+    setIsLoggedIn(true);
+    setUserInfo({
+      username: username,
+      nickname: localStorage.getItem("nickname") || username,
+    });
   }, []);
 
   // 로그아웃 처리 함수

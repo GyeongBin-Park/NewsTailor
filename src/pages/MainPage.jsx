@@ -24,19 +24,16 @@ export default function MainPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
 
-  // 로그인 상태 확인
+  // 로그인 상태 확인 (리다이렉트 하지 않음)
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const username = localStorage.getItem("username");
     const nickname = localStorage.getItem("nickname");
 
-    if (!token || !username) {
-      toast.error("로그인이 필요합니다.");
-      navigate("/login");
-      return;
+    if (token && username) {
+      setUserInfo({ username, nickname: nickname || username });
     }
-    setUserInfo({ username, nickname: nickname || username });
-  }, [navigate]);
+  }, []);
 
   // 음성 목록 불러오기
   useEffect(() => {
@@ -97,9 +94,13 @@ export default function MainPage() {
     }
   }, [navigate]);
 
+  // 로그인된 경우에만 뉴스 불러오기
   useEffect(() => {
     if (userInfo.username) {
       fetchNews();
+    } else {
+      // 로그인 안 된 경우 로딩 상태 해제
+      setIsLoading(false);
     }
   }, [userInfo.username, fetchNews]);
 
@@ -207,20 +208,38 @@ export default function MainPage() {
         )}
         {error && <p className="text-center text-red-500 mt-10">{error}</p>}
 
-        {!isLoading && !error && articles.length > 0
-          ? articles.map((a) => (
-              <Article
-                key={a.id}
-                article={a}
-                isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
-                onToggleBookmark={() => handleToggleBookmark(a)}
-              />
-            ))
-          : !isLoading && (
-              <p className="text-center text-gray-500 mt-10">
-                표시할 뉴스가 없습니다.
-              </p>
-            )}
+        {!isLoading && !error && articles.length > 0 ? (
+          articles.map((a) => (
+            <Article
+              key={a.id}
+              article={a}
+              isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
+              onToggleBookmark={() => handleToggleBookmark(a)}
+            />
+          ))
+        ) : !isLoading && !userInfo.username ? (
+          <div className="text-center mt-16 px-4">
+            <div className="mb-6">
+              <span className="text-6xl">📰</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              로그인이 필요합니다
+            </h3>
+            <p className="text-gray-500 mb-6">
+              맞춤 뉴스를 보려면 로그인해주세요
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="bg-[#39235C] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#2d1a47] transition-colors"
+            >
+              로그인하기
+            </button>
+          </div>
+        ) : !isLoading && userInfo.username ? (
+          <p className="text-center text-gray-500 mt-10">
+            표시할 뉴스가 없습니다.
+          </p>
+        ) : null}
       </main>
 
       <Footer />
