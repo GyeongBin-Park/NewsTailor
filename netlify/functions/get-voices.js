@@ -1,6 +1,6 @@
 export const handler = async (event, context) => {
   const API_KEY = process.env.SPEECHIFY_API_KEY;
-  const API_URL = "https://api.sws.speechify.com";
+  const API_URL = "https://api.sws.speechify.com/v1/audio/speech";
 
   if (!API_KEY) {
     console.error("Netlify 환경 변수 'SPEECHIFY_API_KEY'가 없습니다.");
