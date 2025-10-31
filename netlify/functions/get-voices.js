@@ -2,7 +2,7 @@
 
 export const handler = async (event, context) => {
   const API_KEY = process.env.SPEECHIFY_API_KEY;
-  const API_URL = "https://api.sws.speechify.com/v1/voices"; // POST 방식 URL
+  const API_URL = "https://api.sws.speechify.com/v1/voices";
 
   if (!API_KEY) {
     console.error("Netlify 환경 변수 'SPEECHIFY_API_KEY'가 없습니다.");
@@ -15,14 +15,14 @@ export const handler = async (event, context) => {
 
   try {
     const apiResponse = await fetch(API_URL, {
-      method: "POST", // 1. 'POST' 방식을 사용합니다.
+      method: "POST",
       headers: {
         Authorization: `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
       },
-      // 2. Article.jsx를 참고하여 'model' 정보를 body에 담아 보냅니다.
+      // 👇 여기를 수정했습니다! "model" -> "model_id"
       body: JSON.stringify({
-        model: "simba-multilingual",
+        model_id: "simba-multilingual",
       }),
     });
 
@@ -40,7 +40,6 @@ export const handler = async (event, context) => {
       };
     }
 
-    // 성공!
     const data = await apiResponse.json();
     return {
       statusCode: 200,
