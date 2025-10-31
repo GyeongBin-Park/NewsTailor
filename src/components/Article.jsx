@@ -7,7 +7,13 @@ import CopyIcon from "../icons/copy.svg";
 import BookmarkIcon from "../icons/bookmark_x.svg";
 import BookmarkFilledIcon from "../icons/bookmark_o.svg";
 
-export default function Article({ article, isBookmarked, onToggleBookmark }) {
+// 1. 'selectedVoiceId'를 prop으로 받도록 추가합니다.
+export default function Article({
+  article,
+  isBookmarked,
+  onToggleBookmark,
+  selectedVoiceId,
+}) {
   const { title, content } = article;
   const [isLoading, setIsLoading] = useState(false);
   const [audioPlayer, setAudioPlayer] = useState(null);
@@ -26,18 +32,20 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
       return;
     }
     if (!selectedVoiceId) {
-      toast.error("목소리가 선택되지 않았습니다.");
+      toast.error("목소리가 선택되지 않았습니다. (Mypage에서 선택)");
       return;
     }
+
     setIsLoading(true);
-    const API_KEY = import.meta.env.VITE_SPEECHIFY_API_KEY;
-    const API_URL = "/api/v1/audio/speech";
+
+    // 2. Netlify 함수 주소로 변경합니다. (새로 만들 파일)
+    const API_URL = "/.netlify/functions/get-speech";
 
     const options = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
+        // 3. Authorization 헤더와 API_KEY는 서버 함수가 처리하므로 삭제합니다.
       },
       body: JSON.stringify({
         input: `${title}. ${content}`,
@@ -53,11 +61,9 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
       }
 
       const data = await response.json();
-
       const base64Audio = data.audio_data;
-      const audioFormat = data.audio_format || "wav"; // 'wav'가 기본값
+      const audioFormat = data.audio_format || "wav";
 
-      // atob 함수는 Base64 문자열 디코딩
       const byteCharacters = atob(base64Audio);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -69,7 +75,7 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
       const audioUrl = URL.createObjectURL(audioBlob);
 
       const newAudioPlayer = new Audio(audioUrl);
-      setAudioPlayer(newAudioPlayer); // 오디오 객체 저장
+      setAudioPlayer(newAudioPlayer);
 
       newAudioPlayer.play().catch((error) => {
         console.error("오디오 재생 오류:", error);
@@ -77,8 +83,8 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
       });
 
       newAudioPlayer.onended = () => {
-        setAudioPlayer(null); // 재생이 끝나면 상태 초기화
-        URL.revokeObjectURL(audioUrl); // 메모리 누수 방지
+        setAudioPlayer(null);
+        URL.revokeObjectURL(audioUrl);
       };
     } catch (error) {
       console.error("Speechify API 처리 오류:", error);
