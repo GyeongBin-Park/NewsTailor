@@ -1,6 +1,6 @@
 export default async function handler(request, response) {
   const API_KEY = process.env.SPEECHIFY_API_KEY;
-  const API_URL = "https://api.sws.speechify.com/v1/voices";
+  const API_URL = "https://api.sws.speechify.com";
 
   if (!API_KEY) {
     return response
