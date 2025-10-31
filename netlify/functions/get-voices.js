@@ -15,13 +15,10 @@ export const handler = async (event, context) => {
 
   try {
     const apiResponse = await fetch(API_URL, {
-      method: "POST", // 👈 'GET'에서 'POST'로 수정했습니다!
+      method: "POST", // POST 방식은 유지
       headers: {
         Authorization: `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
       },
-      // POST 요청이므로 빈 body라도 보내는 것이 안전할 수 있습니다.
-      body: JSON.stringify({}),
     });
 
     if (!apiResponse.ok) {
