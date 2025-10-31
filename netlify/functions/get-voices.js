@@ -2,7 +2,8 @@
 
 export const handler = async (event, context) => {
   const API_KEY = process.env.SPEECHIFY_API_KEY;
-  const API_URL = "https://api.sws.speechify.com/v1/voices";
+  // 👇 여기를 수정했습니다! ( .../v1/audio/voices 로 변경)
+  const API_URL = "https://api.sws.speechify.com/v1/audio/voices";
 
   if (!API_KEY) {
     console.error("Netlify 환경 변수 'SPEECHIFY_API_KEY'가 없습니다.");
@@ -15,20 +16,18 @@ export const handler = async (event, context) => {
 
   try {
     const apiResponse = await fetch(API_URL, {
-      method: "POST",
+      method: "GET", // 👈 'POST'에서 'GET'으로 되돌렸습니다.
       headers: {
         Authorization: `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
       },
-      // 👇 여기를 수정했습니다! "model" -> "model_id"
-      body: JSON.stringify({
-        model_id: "simba-multilingual",
-      }),
+      // body는 GET 요청이므로 삭제
     });
 
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
-      console.error(`Speechify API 에러 (${apiResponse.status}): ${errorText}`);
+      console.error(
+        `Speechify API 에러 (${apiResponse.status}) at ${API_URL}: ${errorText}`
+      );
 
       return {
         statusCode: apiResponse.status,
@@ -40,6 +39,7 @@ export const handler = async (event, context) => {
       };
     }
 
+    // 성공!
     const data = await apiResponse.json();
     return {
       statusCode: 200,
