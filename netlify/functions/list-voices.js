@@ -4,7 +4,7 @@ export const handler = async (event, context) => {
   const API_KEY = process.env.SPEECHIFY_API_KEY;
 
   // 👇 공식 문서에 나온 '목소리 목록'을 가져오는 올바른 주소입니다.
-  const API_URL = "https://api.sws.speechify.com/v1/audio/voices";
+  const API_URL = "https://api.sws.speechify.com";
 
   if (!API_KEY) {
     console.error("Netlify 환경 변수 'SPEECHIFY_API_KEY'가 없습니다.");
