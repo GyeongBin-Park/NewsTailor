@@ -1,8 +1,18 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"
+  functions = "netlify/functions" 
 
+# [NEW RULE]
+# This rule tells Netlify to leave the functions path alone.
+# It MUST come BEFORE the /* catch-all rule.
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# [EXISTING RULE]
+# This is the catch-all for the React app
 [[redirects]]
   from = "/*"
   to = "/index.html"
