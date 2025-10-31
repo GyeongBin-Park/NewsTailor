@@ -12,7 +12,7 @@ const VOICE_STORAGE_KEY = "user_selected_voice_id";
 const MenuItem = ({ children, onClick, isDestructive = false, icon }) => {
   const textColor = isDestructive ? "text-red-500" : "text-gray-700";
   const hoverBg = isDestructive ? "hover:bg-red-50" : "hover:bg-gray-50";
-  
+
   return (
     <button
       onClick={onClick}
@@ -45,7 +45,7 @@ export default function MyPage() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const username = localStorage.getItem("username");
-    
+
     if (!token || !username) {
       // 로그인되지 않은 경우
       setIsLoggedIn(false);
@@ -64,13 +64,10 @@ export default function MyPage() {
   useEffect(() => {
     const fetchVoices = async () => {
       setIsLoading(true);
-      const API_URL = "/api/v1/voices";
-      const API_KEY = import.meta.env.VITE_SPEECHIFY_API_KEY;
+      const API_URL = "/api/getvoices";
 
       try {
-        const response = await fetch(API_URL, {
-          headers: { Authorization: `Bearer ${API_KEY}` },
-        });
+        const response = await fetch(API_URL);
         if (!response.ok) throw new Error("API 응답 오류");
 
         const data = await response.json();
@@ -143,10 +140,20 @@ export default function MyPage() {
           {isLoggedIn ? (
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-[#39235C] to-[#F1C40F] rounded-full flex items-center justify-center p-4">
-                <img src={UserIcon} alt="user" className="w-full h-full" style={{ filter: 'brightness(0) saturate(100%) invert(98%) sepia(5%) saturate(300%) hue-rotate(20deg) brightness(105%)' }} />
+                <img
+                  src={UserIcon}
+                  alt="user"
+                  className="w-full h-full"
+                  style={{
+                    filter:
+                      "brightness(0) saturate(100%) invert(98%) sepia(5%) saturate(300%) hue-rotate(20deg) brightness(105%)",
+                  }}
+                />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{userInfo.nickname}</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {userInfo.nickname}
+                </h2>
                 <p className="text-gray-500">{userInfo.username}</p>
               </div>
             </div>
@@ -155,7 +162,9 @@ export default function MyPage() {
               <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
                 <span className="text-gray-400 text-2xl">👤</span>
               </div>
-              <p className="text-gray-600 text-lg font-medium mb-4">로그인이 필요합니다.</p>
+              <p className="text-gray-600 text-lg font-medium mb-4">
+                로그인이 필요합니다.
+              </p>
               <button
                 onClick={() => navigate("/login")}
                 className="bg-[#39235C] text-white px-6 py-2 rounded-xl font-medium hover:bg-[#2d1a47] transition-colors"
@@ -176,7 +185,10 @@ export default function MyPage() {
                 음성 설정
               </h3>
               <div className="space-y-3">
-                <label htmlFor="voice-select" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="voice-select"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   기본 목소리 선택
                 </label>
                 <select
@@ -212,22 +224,16 @@ export default function MyPage() {
                 </h3>
               </div>
               <div className="divide-y divide-gray-100">
-                <MenuItem 
-                  onClick={() => navigate("/mypage/edit")} 
-                  icon="👤"
-                >
+                <MenuItem onClick={() => navigate("/mypage/edit")} icon="👤">
                   프로필 수정
                 </MenuItem>
-            <MenuItem 
-              onClick={() => navigate("/mypage/change-password")} 
-              icon="🔒"
-            >
-              비밀번호 변경
-            </MenuItem>
-                <MenuItem 
-                  onClick={handleLogout} 
-                  icon="🚪"
+                <MenuItem
+                  onClick={() => navigate("/mypage/change-password")}
+                  icon="🔒"
                 >
+                  비밀번호 변경
+                </MenuItem>
+                <MenuItem onClick={handleLogout} icon="🚪">
                   로그아웃
                 </MenuItem>
               </div>
@@ -241,8 +247,8 @@ export default function MyPage() {
                   위험한 작업
                 </h3>
               </div>
-              <MenuItem 
-                onClick={handleDeleteAccount} 
+              <MenuItem
+                onClick={handleDeleteAccount}
                 isDestructive={true}
                 icon="🗑️"
               >
