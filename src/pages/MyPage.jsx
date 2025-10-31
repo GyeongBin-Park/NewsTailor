@@ -64,7 +64,7 @@ export default function MyPage() {
   useEffect(() => {
     const fetchVoices = async () => {
       setIsLoading(true);
-      const API_URL = "/api/getvoices";
+      const API_URL = "/api/get-voices";
 
       try {
         const response = await fetch(API_URL);
