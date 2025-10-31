@@ -2,7 +2,8 @@
 
 export const handler = async (event, context) => {
   const API_KEY = process.env.SPEECHIFY_API_KEY;
-  // 👇 여기를 수정했습니다! ( .../v1/audio/voices 로 변경)
+
+  // 👇 공식 문서에 나온 '목소리 목록'을 가져오는 올바른 주소입니다.
   const API_URL = "https://api.sws.speechify.com/v1/audio/voices";
 
   if (!API_KEY) {
@@ -16,14 +17,16 @@ export const handler = async (event, context) => {
 
   try {
     const apiResponse = await fetch(API_URL, {
-      method: "GET", // 👈 'POST'에서 'GET'으로 되돌렸습니다.
+      method: "GET", // 👈 '목록'은 'GET' 방식입니다.
       headers: {
         Authorization: `Bearer ${API_KEY}`,
       },
-      // body는 GET 요청이므로 삭제
+      // GET 요청이므로 body가 없습니다.
     });
 
+    // --- 여기부터는 API 키가 틀렸을 때의 방어 코드입니다 ---
     if (!apiResponse.ok) {
+      // (예: 401 Unauthorized - 키가 틀림)
       const errorText = await apiResponse.text();
       console.error(
         `Speechify API 에러 (${apiResponse.status}) at ${API_URL}: ${errorText}`
@@ -38,6 +41,7 @@ export const handler = async (event, context) => {
         headers: { "Content-Type": "application/json" },
       };
     }
+    // --- 여기까지 ---
 
     // 성공!
     const data = await apiResponse.json();
