@@ -1,10 +1,11 @@
+// 파일 경로: netlify/functions/get-voices.js
+
 export const handler = async (event, context) => {
   const API_KEY = process.env.SPEECHIFY_API_KEY;
-  const API_URL = "https://api.sws.speechify.com/v1/audio/speech";
+  const API_URL = "https://api.sws.speechify.com/v1/voices";
 
   if (!API_KEY) {
     console.error("Netlify 환경 변수 'SPEECHIFY_API_KEY'가 없습니다.");
-    // Netlify는 "return { statusCode, body }" 객체 형태로 응답해야 합니다.
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "API 키가 서버에 설정되지 않았습니다." }),
@@ -14,7 +15,13 @@ export const handler = async (event, context) => {
 
   try {
     const apiResponse = await fetch(API_URL, {
-      headers: { Authorization: `Bearer ${API_KEY}` },
+      method: "POST", // 👈 'GET'에서 'POST'로 수정했습니다!
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      // POST 요청이므로 빈 body라도 보내는 것이 안전할 수 있습니다.
+      body: JSON.stringify({}),
     });
 
     if (!apiResponse.ok) {
@@ -31,11 +38,10 @@ export const handler = async (event, context) => {
       };
     }
 
-    // 성공 시
     const data = await apiResponse.json();
     return {
       statusCode: 200,
-      body: JSON.stringify(data), // body는 반드시 문자열이어야 합니다.
+      body: JSON.stringify(data), // 성공!
       headers: { "Content-Type": "application/json" },
     };
   } catch (error) {
