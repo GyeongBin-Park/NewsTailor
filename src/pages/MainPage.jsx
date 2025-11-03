@@ -14,12 +14,12 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function MainPage() {
   const navigate = useNavigate();
-  
+
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userInfo, setUserInfo] = useState({ username: "", nickname: "" });
-  
+
   // 음성 관련 상태 추가
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);

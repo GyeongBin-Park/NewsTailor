@@ -10,12 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@speechify/api": "^1.0.0",
     "@tailwindcss/vite": "^4.1.11",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.62.0",
     "react-hot-toast": "^2.5.2",
     "react-router-dom": "^7.7.1"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
@@ -32,7 +36,6 @@
     "vite": "^7.1.0"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
-  "main": "eslint.config.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/himinji/NewsTailor.git"

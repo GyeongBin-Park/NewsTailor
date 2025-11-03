@@ -34,7 +34,6 @@ export default function MyPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({ username: "", nickname: "" });
 
-  // 4. 음성 설정 관련 상태 변수들을 추가합니다.
   const [voices, setVoices] = useState([]);
   const [selectedVoiceId, setSelectedVoiceId] = useState(
     () => localStorage.getItem(VOICE_STORAGE_KEY) || ""
@@ -60,11 +59,10 @@ export default function MyPage() {
     });
   }, []);
 
-  // 5. 컴포넌트가 로드될 때 목소리 목록을 불러오는 useEffect를 추가합니다.
   useEffect(() => {
     const fetchVoices = async () => {
       setIsLoading(true);
-      const API_URL = "/api/getvoices";
+      const API_URL = "/api/get-voices";
 
       try {
         const response = await fetch(API_URL);
