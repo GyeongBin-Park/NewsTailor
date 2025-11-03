@@ -11,6 +11,7 @@ import TextLogo from "../icons/text_logo.png";
 import LogoIcon from "/favicon-96x96.png";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const VOICE_STORAGE_KEY = "user_selected_voice_id";
 
 export default function MainPage() {
   const navigate = useNavigate();
@@ -23,6 +24,10 @@ export default function MainPage() {
   // 음성 관련 상태 추가
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
+
+  const [selectedVoiceId, setSelectedVoiceId] = useState(
+    () => localStorage.getItem(VOICE_STORAGE_KEY) || ""
+  );
 
   // 로그인 상태 확인 (리다이렉트 하지 않음)
   useEffect(() => {
@@ -215,6 +220,7 @@ export default function MainPage() {
               article={a}
               isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
               onToggleBookmark={() => handleToggleBookmark(a)}
+              selectedVoiceId={selectedVoiceId}
             />
           ))
         ) : !isLoading && !userInfo.username ? (
