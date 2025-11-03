@@ -30,8 +30,8 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
       return;
     }
     setIsLoading(true);
-    const API_KEY = import.meta.env.VITE_SPEECHIFY_API_KEY;
-    const API_URL = "/api/v1/audio/speech";
+    // const API_KEY = import.meta.env.VITE_SPEECHIFY_API_KEY;
+    const API_URL = "/api/get-speech";
 
     const options = {
       method: "POST",
