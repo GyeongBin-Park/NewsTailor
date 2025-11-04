@@ -6,6 +6,7 @@ import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import BookmarkPage from "./pages/BookmarkPage";
+import RankingPage from "./pages/RankingPage";
 import Step3Test from "./components/SignUp/Step3Test";
 import MyPage from "./pages/MyPage";
 import EditProfilePage from "./pages/EditProfilePage";
@@ -21,6 +22,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/bookmark" element={<BookmarkPage />} />
+          <Route path="/ranking" element={<RankingPage />} />
           <Route path="/step3-test" element={<Step3Test />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/edit" element={<EditProfilePage />} />

@@ -20,6 +20,7 @@ export default function MainPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userInfo, setUserInfo] = useState({ username: "", nickname: "" });
+  const [currentPage, setCurrentPage] = useState(0); // 페이징 상태 추가
 
   // 음성 관련 상태 추가
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -64,36 +65,155 @@ export default function MainPage() {
     navigate("/login");
   };
 
-  const fetchNews = useCallback(async () => {
+  const fetchNews = useCallback(async (page = 0) => {
     setIsLoading(true);
     setError(null);
     const token = localStorage.getItem("accessToken");
 
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${BACKEND_URL}/api/news`, {
+      // API 명세에 맞게 요약뉴스 API 호출
+      // 백엔드에서 파라미터 이름을 인식하지 못하는 문제가 있으므로,
+      // 명시적으로 page 파라미터 전달
+      const separator = BACKEND_URL.endsWith('/') ? '' : '/';
+      
+      // 백엔드가 파라미터 이름을 인식하지 못하는 경우를 대비해
+      // 명시적으로 query string 구성 (이미 올바름)
+      const apiUrl = `${BACKEND_URL}${separator}api/v1/summary-news?page=${page}`;
+      
+      // 참고: 이 오류는 백엔드 Spring Boot 설정 문제입니다.
+      // 백엔드 코드에서 @RequestParam(value = "page")를 명시하거나
+      // 컴파일러에 -parameters 플래그를 추가해야 합니다.
+      
+      console.log('🔍 요약뉴스 요청 시작:');
+      console.log('  - URL:', apiUrl);
+      console.log('  - Token 존재:', !!token);
+      console.log('  - Page:', page);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
-          "ngrok-skip-browser-warning": "true",
+          "Content-Type": "application/json",
         },
       });
+
+      console.log('📡 응답 상태:', response.status, response.statusText);
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           toast.error("인증이 만료되었습니다. 다시 로그인해주세요.");
           handleLogout(); // 로그아웃 처리
+          return;
+        } else if (response.status === 503) {
+          // 503 Service Unavailable: 캐시된 요약 뉴스가 아직 준비되지 않음
+          let errorMessage = "요약 뉴스가 아직 준비되지 않았습니다.";
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+            console.log('⚠️ 503 에러 - 캐시 미준비:', errorData);
+          } catch (e) {
+            console.error("503 에러 응답 파싱 실패:", e);
+          }
+          
+          // 사용자에게 안내 메시지 표시
+          toast.error(errorMessage, {
+            duration: 4000,
+          });
+          
+          // 더 상세한 안내 메시지 표시
+          setError(
+            errorMessage + 
+            "\n\n스케줄러가 실행되면 자동으로 생성됩니다. (08:00, 13:00, 20:00)" +
+            "\n또는 백엔드 관리자에게 요청하여 테스트 API를 실행할 수 있습니다."
+          );
+          
+          console.warn('📝 참고: 백엔드에서 다음 테스트 API로 강제 생성 가능');
+          console.warn('   POST /api/test/generate-all');
+          
+          return;
+        } else if (response.status === 400) {
+          // 400 에러 응답 파싱 (두 가지 형식 지원)
+          let errorMessage = "잘못된 요청입니다.";
+          let errorData = null;
+          try {
+            errorData = await response.json();
+            console.error('❌ 400 에러 응답 전체:', errorData);
+            // 명세에 따른 에러 응답 형식 처리
+            errorMessage = errorData.message || errorData.error || errorData.status || "잘못된 요청입니다.";
+            
+            // 관심사 관련 에러인지 확인
+            if (errorMessage.includes("관심사") || errorMessage.includes("interest") || errorMessage.includes("3개")) {
+              errorMessage = "관심사를 3개 선택해주세요. 마이페이지에서 설정할 수 있습니다.";
+              console.error('⚠️ 관심사 설정 오류 감지');
+              setTimeout(() => {
+                if (window.confirm("관심사를 설정하시겠습니까?")) {
+                  navigate("/mypage");
+                }
+              }, 1000);
+            } else {
+              // 파라미터 관련 에러인지 확인
+              if (errorMessage.includes("파라미터") || errorMessage.includes("parameter") || errorMessage.includes("Name for argument")) {
+                console.error('⚠️ 파라미터 이름 오류 감지 - 백엔드 설정 확인 필요');
+                errorMessage = "요청 파라미터 오류: 백엔드에서 파라미터 이름을 확인할 수 없습니다.";
+              }
+            }
+          } catch (e) {
+            // JSON 파싱 실패 시 텍스트로 읽기 시도
+            console.error("에러 응답 JSON 파싱 실패:", e);
+            try {
+              const text = await response.text();
+              console.error('❌ 에러 응답 텍스트:', text);
+              errorMessage = text || "잘못된 요청입니다.";
+            } catch (textError) {
+              console.error("에러 응답 텍스트 읽기 실패:", textError);
+            }
+          }
+          toast.error(errorMessage);
+          setError(errorMessage);
+          console.error("❌ 400 에러 최종 메시지:", errorMessage);
+          return;
         }
         throw new Error("뉴스 목록을 불러오는 데 실패했습니다.");
       }
 
+      // API 응답은 배열을 직접 반환 (명세에 따르면)
       const data = await response.json();
-      // API 응답에서 isBookmarked 값을 확인하여 초기 북마크 상태 설정
-      const initialBookmarks = data.content.filter(
-        (article) => article.isBookmarked
-      );
-      setArticles(data.content);
+      
+      console.log('✅ 응답 데이터:', data);
+      console.log('  - 타입:', Array.isArray(data) ? '배열' : typeof data);
+      console.log('  - 길이:', Array.isArray(data) ? data.length : 'N/A');
+      
+      // 배열인지 확인하고 처리
+      const newsArray = Array.isArray(data) ? data : (data.content || []);
+      
+      console.log('📰 처리된 뉴스 배열:', newsArray);
+      console.log('  - 뉴스 개수:', newsArray.length);
+      
+      if (newsArray.length === 0) {
+        console.warn('⚠️ 뉴스 배열이 비어있습니다!');
+        setError("표시할 뉴스가 없습니다.");
+        toast.info("현재 표시할 요약 뉴스가 없습니다.");
+      }
+      
+      // 북마크 상태는 별도로 관리 (초기에는 모두 false)
+      // 북마크 목록을 조회하여 매칭할 수 있지만, 일단 기본값 false로 설정
+      const articlesWithBookmark = newsArray.map(article => ({
+        ...article,
+        isBookmarked: false, // 초기값, 실제 북마크 상태는 북마크 API에서 확인 필요
+      }));
+      
+      console.log('✅ 최종 articles:', articlesWithBookmark);
+      setArticles(articlesWithBookmark);
+      setCurrentPage(page);
     } catch (err) {
       setError(err.message);
-      console.error(err);
+      console.error("뉴스 로딩 오류:", err);
+      toast.error("뉴스를 불러오는 데 실패했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -112,11 +232,28 @@ export default function MainPage() {
   const handleToggleBookmark = async (articleToToggle) => {
     const token = localStorage.getItem("accessToken");
 
-    const articleInState = articles.find((a) => a.id === articleToToggle.id);
+    // API 응답에 id 필드가 있을 수도 있고 없을 수도 있음
+    // 명세에는 없지만 실제 응답에 포함될 수 있음
+    const articleInState = articles.find((a) => 
+      a.id === articleToToggle.id || 
+      (a.sectionId === articleToToggle.sectionId && a.title === articleToToggle.title)
+    );
     if (!articleInState) return;
 
     const isBookmarked = articleInState.isBookmarked;
-    const endpoint = `${BACKEND_URL}/api/news/${articleToToggle.id}/bookmark`;
+    
+    // API 명세에 맞게 북마크 API 수정
+    // POST /api/bookmark?summaryNewsCacheId={id} 또는 DELETE
+    // 주의: 명세에는 id 필드가 없지만, 실제 응답에는 포함되어야 함
+    const summaryNewsCacheId = articleToToggle.id || articleToToggle.summaryNewsCacheId;
+    
+    if (!summaryNewsCacheId) {
+      toast.error("북마크할 수 없습니다: 뉴스 ID가 없습니다. 백엔드 응답에 id 필드가 포함되어야 합니다.");
+      console.error("뉴스 데이터:", articleToToggle);
+      return;
+    }
+
+    const endpoint = `${BACKEND_URL}/api/bookmark?summaryNewsCacheId=${summaryNewsCacheId}`;
     const method = isBookmarked ? "DELETE" : "POST";
 
     try {
@@ -124,26 +261,38 @@ export default function MainPage() {
         method: method,
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error("북마크 처리에 실패했습니다.");
+        const errorData = await response.json().catch(() => ({ message: "북마크 처리에 실패했습니다." }));
+        throw new Error(errorData.message || "북마크 처리에 실패했습니다.");
       }
 
+      // 성공 메시지 확인
+      const responseText = await response.text();
+      
+      // 북마크 상태 업데이트
       setArticles(
-        articles.map((article) =>
-          article.id === articleToToggle.id
+        articles.map((article) => {
+          // id로 매칭하거나, id가 없으면 sectionId + title로 매칭
+          const isMatch = article.id === articleToToggle.id || 
+            (!article.id && !articleToToggle.id && 
+             article.sectionId === articleToToggle.sectionId && 
+             article.title === articleToToggle.title);
+          return isMatch
             ? { ...article, isBookmarked: !isBookmarked }
-            : article
-        )
+            : article;
+        })
       );
+      
       toast.success(
         isBookmarked ? "북마크가 삭제되었습니다." : "북마크에 추가되었습니다."
       );
     } catch (err) {
       toast.error(err.message);
-      console.error(err);
+      console.error("북마크 처리 오류:", err);
     }
   };
 
@@ -211,18 +360,41 @@ export default function MainPage() {
             기사를 불러오는 중...
           </p>
         )}
-        {error && <p className="text-center text-red-500 mt-10">{error}</p>}
+        {error && <p className="text-center text-red-500 mt-10 whitespace-pre-line">{error}</p>}
 
         {!isLoading && !error && articles.length > 0 ? (
-          articles.map((a) => (
-            <Article
-              key={a.id}
-              article={a}
-              isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
-              onToggleBookmark={() => handleToggleBookmark(a)}
-              selectedVoiceId={selectedVoiceId}
-            />
-          ))
+          <>
+            {articles.map((a, index) => (
+              <Article
+                key={a.id || `${a.sectionId}-${a.title}-${index}`}
+                article={a}
+                isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
+                onToggleBookmark={() => handleToggleBookmark(a)}
+                selectedVoiceId={selectedVoiceId}
+              />
+            ))}
+            
+            {/* 페이지네이션 */}
+            <div className="flex justify-center items-center gap-2 mt-8 mb-4">
+              {[0, 1, 2, 3].map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => fetchNews(pageNum)}
+                  disabled={isLoading}
+                  className={`
+                    w-10 h-10 rounded-lg font-medium transition-colors
+                    ${currentPage === pageNum
+                      ? 'bg-[#39235C] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }
+                    ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  `}
+                >
+                  {pageNum + 1}
+                </button>
+              ))}
+            </div>
+          </>
         ) : !isLoading && !userInfo.username ? (
           <div className="text-center mt-16 px-4">
             <div className="mb-6">

@@ -7,8 +7,12 @@ import CopyIcon from "../icons/copy.svg";
 import BookmarkIcon from "../icons/bookmark_x.svg";
 import BookmarkFilledIcon from "../icons/bookmark_o.svg";
 
-export default function Article({ article, isBookmarked, onToggleBookmark }) {
-  const { title, content } = article;
+export default function Article({ article, isBookmarked, onToggleBookmark, selectedVoiceId }) {
+  // API 응답에서 summary 필드를 content로 사용 (호환성 유지)
+  const title = article.title;
+  const content = article.summary || article.content || "";
+  const sectionName = article.sectionName || "";
+  const url = article.url || "";
   const [isLoading, setIsLoading] = useState(false);
   const [audioPlayer, setAudioPlayer] = useState(null);
 
@@ -89,48 +93,77 @@ export default function Article({ article, isBookmarked, onToggleBookmark }) {
   };
 
   return (
-    <div
-      className="bg-white p-4 space-y-3 border border-gray-100"
-      style={{
-        borderRadius: "10px",
-        boxShadow: "0px 0px 9.6px rgba(0, 0, 0, 0.1)",
-      }}
-    >
-      {/* Title */}
-      <div className="inline-flex items-center px-3 py-1 bg-yellow-200 text-yellow-900 rounded-lg text-sm font-semibold">
-        {title}
-      </div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+      {/* 카테고리 뱃지 */}
+      {sectionName && (
+        <div className="px-4 pt-4 pb-2">
+          <span className="inline-block px-3 py-1 bg-[#39235C] text-white text-xs font-semibold rounded-full">
+            {sectionName}
+          </span>
+        </div>
+      )}
 
-      {/* Content */}
-      <div className="bg-gray-100 rounded-lg p-4 text-gray-400 text-sm h-28">
-        {content}
-      </div>
+      <div className="px-4 pb-4 space-y-3">
+        {/* Title */}
+        <h3 className="text-lg font-bold text-gray-900 leading-snug break-words">
+          {title}
+        </h3>
 
-      {/* Action Icons */}
-      <div className="flex space-x-4 pt-2">
-        <button
-          onClick={handleSpeak}
-          disabled={isLoading}
-          className="cursor-pointer disabled:opacity-50"
-        >
-          <img
-            src={isLoading || audioPlayer ? VolumeFilledIcon : VolumeIcon}
-            alt="volume"
-            className="w-6 h-6"
-          />
-        </button>
-        <img
-          src={CopyIcon}
-          alt="copy"
-          className="w-6 h-6 cursor-pointer"
-          onClick={handleCopy}
-        />
-        <img
-          src={isBookmarked ? BookmarkFilledIcon : BookmarkIcon}
-          alt="bookmark"
-          className="w-6 h-6 cursor-pointer"
-          onClick={() => onToggleBookmark(article)}
-        />
+        {/* Content */}
+        <div className="text-sm text-gray-600 leading-relaxed break-words">
+          {content}
+        </div>
+
+        {/* 원문 링크 */}
+        {url && (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-[#39235C] font-medium hover:underline"
+          >
+            원문 보기
+            <span className="text-xs">↗</span>
+          </a>
+        )}
+
+        {/* Action Icons */}
+        <div className="flex items-center justify-end gap-4 pt-2 border-t border-gray-100">
+          <button
+            onClick={handleSpeak}
+            disabled={isLoading}
+            className="cursor-pointer disabled:opacity-50 hover:opacity-70 transition-opacity"
+            title="음성으로 듣기"
+          >
+            <img
+              src={isLoading || audioPlayer ? VolumeFilledIcon : VolumeIcon}
+              alt="volume"
+              className="w-5 h-5"
+            />
+          </button>
+          <button
+            onClick={handleCopy}
+            className="cursor-pointer hover:opacity-70 transition-opacity"
+            title="복사하기"
+          >
+            <img
+              src={CopyIcon}
+              alt="copy"
+              className="w-5 h-5"
+            />
+          </button>
+          <button
+            onClick={() => onToggleBookmark(article)}
+            className="cursor-pointer hover:opacity-70 transition-opacity"
+            title={isBookmarked ? "북마크 제거" : "북마크 추가"}
+          >
+            <img
+              src={isBookmarked ? BookmarkFilledIcon : BookmarkIcon}
+              alt="bookmark"
+              className="w-5 h-5"
+            />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -28,9 +28,21 @@ const Step1 = ({onNext}) => {
     const checkDuplicate = async () => {
         if (!username) return;
 
+        // 타임아웃 설정 (10초)
+        const controller = new AbortController();
+        let timeoutId = null;
+
         try {
             setChecking(true);
             setIdError("");
+
+            if (!BACKEND) {
+                setIdError("백엔드 서버 주소가 설정되지 않았습니다.");
+                console.error("VITE_BACKEND_URL 환경 변수가 설정되지 않았습니다.");
+                return;
+            }
+
+            timeoutId = setTimeout(() => controller.abort(), 10000);
 
             // CORS 및 ngrok 문제 해결을 위한 헤더 추가
             const res = await fetch(
@@ -43,9 +55,12 @@ const Step1 = ({onNext}) => {
                         'User-Agent': 'Mozilla/5.0 (compatible; API-Client/1.0)',
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    signal: controller.signal,
                 }
             );
+
+            if (timeoutId) clearTimeout(timeoutId);
 
             // Content-Type 확인
             const contentType = res.headers.get("content-type");
@@ -82,16 +97,24 @@ const Step1 = ({onNext}) => {
             }
       
         } catch (err) {
+          if (timeoutId) clearTimeout(timeoutId);
+          
           console.error("중복 확인 오류", err);
           setIdValid(false);
           
-          // CORS 오류인지 확인
-          if (err.message.includes('CORS') || err.message.includes('Access-Control-Allow-Origin')) {
+          // 타임아웃 에러 확인 (AbortError는 타임아웃이나 수동 중단 시 발생)
+          if (err.name === 'AbortError' || 
+              err.name === 'TimeoutError' || 
+              err.message?.includes('aborted')) {
+            setIdError("서버 연결 시간이 초과되었습니다. 서버 상태를 확인해주세요.");
+            console.error("타임아웃 발생 - 백엔드 URL:", BACKEND);
+          } else if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+            setIdError("서버에 연결할 수 없습니다. 네트워크 연결과 서버 주소를 확인해주세요.");
+            console.error("네트워크 오류 - 백엔드 URL:", BACKEND);
+          } else if (err.message?.includes('CORS') || err.message?.includes('Access-Control-Allow-Origin')) {
             setIdError("CORS 정책 오류: 서버에서 CORS 헤더를 설정해야 합니다.");
-          } else if (err.message.includes('Failed to fetch')) {
-            setIdError("네트워크 오류: 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.");
           } else {
-            setIdError("서버 오류가 발생했습니다. 다시 시도해주세요.");
+            setIdError("서버 오류가 발생했습니다: " + (err.message || '알 수 없는 오류'));
           }
       
         } finally {

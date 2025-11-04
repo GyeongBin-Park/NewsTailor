@@ -40,10 +40,10 @@ export default function Footer() {
         alt="bookmark"
       />
       <NavItem
-        to="/search"
+        to="/ranking"
         activeIcon={SearchFilledIcon}
         inactiveIcon={SearchIcon}
-        alt="search"
+        alt="ranking"
       />
       <NavItem
         to="/mypage"
