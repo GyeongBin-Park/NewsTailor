@@ -5,6 +5,8 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BackIcon from "../icons/back.svg";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 // 관심분야 아이콘 import
 import politicsX from "../icons/politics_x.svg";
 import politicsO from "../icons/politics_o.svg";
@@ -119,20 +121,33 @@ export default function EditProfilePage() {
     return false;
   };
 
-  // 저장 버튼 활성화 여부 (관심분야 개수 체크 제거)
-  const isValid = nickname.trim().length > 0 && hasChanges();
+  // 저장 버튼 활성화 여부 (명세에 따르면 관심분야는 정확히 3개)
+  const isValid = 
+    nickname.trim().length >= 2 && 
+    nickname.trim().length <= 20 && 
+    selectedCategories.size === 3 && 
+    hasChanges();
 
   // 저장 처리
   const handleSave = async () => {
-    // 이름 확인
-    if (nickname.trim().length === 0) {
-      toast.error("이름을 입력해주세요.");
+    const token = localStorage.getItem("accessToken");
+    
+    if (!token) {
+      toast.error("로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
+
+    // 닉네임 검증
+    const trimmedNickname = nickname.trim();
+    if (trimmedNickname.length < 2 || trimmedNickname.length > 20) {
+      toast.error("닉네임은 2~20자 사이여야 합니다.");
       return;
     }
     
-    // 관심분야 확인
-    if (selectedCategories.size === 0) {
-      toast.error("최소 1개 이상의 관심분야를 선택해주세요.");
+    // 관심분야 검증 (명세에 따르면 정확히 3개)
+    if (selectedCategories.size !== 3) {
+      toast.error("관심분야를 정확히 3개 선택해주세요.");
       return;
     }
     
@@ -145,28 +160,49 @@ export default function EditProfilePage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: 실제 API 호출
+      // API 명세에 맞게 프로필 수정 API 호출
       const selectedInterestIds = categories
         .filter(cat => selectedCategories.has(cat.id))
         .map(cat => cat.backendId);
 
-      console.log("저장할 데이터:", {
-        nickname,
-        interestIds: selectedInterestIds
+      const response = await fetch(`${BACKEND_URL}/api/user/profile`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nickname: trimmedNickname,
+          interestIds: selectedInterestIds,
+        }),
       });
 
-      // localStorage에 저장
-      localStorage.setItem("nickname", nickname);
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error("인증이 만료되었습니다. 다시 로그인해주세요.");
+          navigate("/login");
+          return;
+        } else if (response.status === 400) {
+          const errorData = await response.json().catch(() => ({ message: "잘못된 요청입니다." }));
+          toast.error(errorData.message || "입력 정보를 확인해주세요.");
+          return;
+        }
+        throw new Error("프로필 수정에 실패했습니다.");
+      }
+
+      // 성공 응답 처리
+      const responseText = await response.text();
+      console.log("프로필 수정 성공:", responseText);
+
+      // localStorage 업데이트
+      localStorage.setItem("nickname", trimmedNickname);
       localStorage.setItem("interests", JSON.stringify(selectedInterestIds));
 
-      // 임시 딜레이
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      toast.success("프로필이 저장되었습니다!");
+      toast.success("프로필이 수정되었습니다!");
       navigate("/mypage");
     } catch (error) {
       console.error("프로필 저장 오류:", error);
-      toast.error("프로필 저장에 실패했습니다.");
+      toast.error(error.message || "프로필 저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -212,7 +248,12 @@ export default function EditProfilePage() {
             관심분야
           </h3>
           <p className="text-sm text-gray-500 mb-6">
-            관심있는 분야를 선택해주세요 (최소 1개)
+            관심있는 분야를 정확히 3개 선택해주세요
+            {selectedCategories.size > 0 && (
+              <span className="ml-2 text-[#39235C] font-semibold">
+                ({selectedCategories.size}/3)
+              </span>
+            )}
           </p>
           
           <div className="flex justify-center">
