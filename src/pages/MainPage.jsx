@@ -331,7 +331,7 @@ export default function MainPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="flex items-center justify-between pl-4 pr-6 h-[60px] bg-[#39235C] text-white">
+      <header className="sticky top-0 z-50 flex items-center justify-between pl-4 pr-6 h-[60px] bg-[#39235C] text-white shadow-sm">
         <img src={LogoIcon} alt="Logo" className="w-10 h-10" />
         <img src={TextLogo} alt="News Tailor Logo" className="h-10" />
         <SideMenu />
