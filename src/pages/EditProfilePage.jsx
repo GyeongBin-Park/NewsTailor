@@ -47,44 +47,109 @@ export default function EditProfilePage() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const username = localStorage.getItem("username");
-    
+
     if (!token || !username) {
       toast.error("로그인이 필요합니다.");
       navigate("/login");
       return;
     }
 
+    if (!BACKEND_URL) {
+      toast.error("백엔드 주소가 설정되지 않았습니다.");
+      return;
+    }
+
     setIsLoggedIn(true);
-    // localStorage에서 사용자 정보 가져오기
-    const savedNickname = localStorage.getItem("nickname") || username;
-    const savedInterests = localStorage.getItem("interests");
-    
-    setNickname(savedNickname);
-    setInitialNickname(savedNickname); // 초기값 저장
-    
-    // 저장된 관심분야가 있으면 불러오기
-    if (savedInterests) {
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort("timeout"), 10000);
+
+    const loadProfile = async () => {
       try {
-        const interestIds = JSON.parse(savedInterests);
-        const categoryIds = categories
-          .filter(cat => interestIds.includes(cat.backendId))
+        const response = await fetch(`${BACKEND_URL}/api/user/profile`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            toast.error("로그인이 만료되었습니다. 다시 로그인해주세요.");
+            navigate("/login");
+            return;
+          }
+
+          const errorText = await response.text().catch(() => "프로필 정보를 불러오지 못했습니다.");
+          throw new Error(errorText);
+        }
+
+        const data = await response.json();
+
+        const nicknameFromServer = data.nickname?.trim()?.length ? data.nickname : username;
+        setNickname(nicknameFromServer);
+        setInitialNickname(nicknameFromServer);
+
+        const interestIdsFromServer = Array.isArray(data.interestIds) ? data.interestIds : [];
+        let categoryIds = categories
+          .filter(cat => interestIdsFromServer.includes(cat.backendId))
           .map(cat => cat.id);
+
+        if (categoryIds.length === 0) {
+          categoryIds = categories.slice(0, 3).map(cat => cat.id);
+        }
+
         const categorySet = new Set(categoryIds);
         setSelectedCategories(categorySet);
-        setInitialCategories(categorySet); // 초기값 저장
+        setInitialCategories(categorySet);
+
+        // 최신 정보로 로컬스토리지 동기화
+        localStorage.setItem("nickname", nicknameFromServer);
+        const interestIdsToPersist = categories
+          .filter(cat => categorySet.has(cat.id))
+          .map(cat => cat.backendId);
+        localStorage.setItem("interests", JSON.stringify(interestIdsToPersist));
       } catch (error) {
-        console.error("관심분야 로드 오류:", error);
-        // 기본값으로 정치 선택
-        const defaultSet = new Set(['politics']);
-        setSelectedCategories(defaultSet);
-        setInitialCategories(defaultSet); // 초기값 저장
+        if (error.name === "AbortError") {
+          toast.error("프로필 정보를 불러오는데 시간이 너무 오래 걸립니다.");
+        } else {
+          console.error("프로필 정보 로드 오류:", error);
+          toast.error(error.message || "프로필 정보를 불러오지 못했습니다.");
+
+          // 기존 로컬 저장값으로라도 표시
+          const savedNickname = localStorage.getItem("nickname") || username;
+          const savedInterests = localStorage.getItem("interests");
+
+          setNickname(savedNickname);
+          setInitialNickname(savedNickname);
+
+          if (savedInterests) {
+            try {
+              const interestIds = JSON.parse(savedInterests);
+              const fallbackCategoryIds = categories
+                .filter(cat => interestIds.includes(cat.backendId))
+                .map(cat => cat.id);
+              const fallbackCategorySet = new Set(fallbackCategoryIds);
+              setSelectedCategories(fallbackCategorySet);
+              setInitialCategories(fallbackCategorySet);
+            } catch (parseError) {
+              console.error("로컬 관심분야 로드 오류:", parseError);
+            }
+          }
+        }
+      } finally {
+        clearTimeout(timeoutId);
       }
-    } else {
-      // 기본값으로 정치 선택
-      const defaultSet = new Set(['politics']);
-      setSelectedCategories(defaultSet);
-      setInitialCategories(defaultSet); // 초기값 저장
-    }
+    };
+
+    loadProfile();
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort("component unmounted");
+    };
   }, [navigate]);
 
   // 관심분야 토글
