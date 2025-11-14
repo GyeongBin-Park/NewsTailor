@@ -416,69 +416,71 @@ export default function MainPage() {
     }
   };
 
-return (
-  <div className="flex flex-col min-h-screen bg-white pb-20">
-    {/* Header */}
-    <header className="sticky top-0 z-50 flex items-center justify-between pl-4 pr-6 h-[60px] bg-[#39235C] text-white shadow-sm">
-      <img src={LogoIcon} alt="Logo" className="w-10 h-10" />
-      <img src={TextLogo} alt="News Tailor Logo" className="h-10" />
-      <SideMenu />
-    </header>
+  return (
+    <div className="flex flex-col min-h-screen bg-white pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between pl-4 pr-6 h-[60px] bg-[#39235C] text-white shadow-sm">
+        <img src={LogoIcon} alt="Logo" className="w-10 h-10" />
+        <img src={TextLogo} alt="News Tailor Logo" className="h-10" />
+        <SideMenu />
+      </header>
 
-    {/* Section Title */}
-    <section className="flex items-center justify-between px-4 mt-4 mb-2">
-      <h2 className="text-xl font-bold">Today's News Paper</h2>
-      <button
-        onClick={handleSpeak}
-        aria-label={
-          isMainAudioPlaying ? "음성 읽기 중지" : "뉴스 제목 전체 듣기"
-        }
-        className="cursor-pointer"
-        disabled={isMainAudioLoading}
-      >
-        <img
-          src={
-            isMainAudioPlaying || isMainAudioLoading
-              ? VolumeFilledIcon
-              : VolumeIcon
+      {/* Section Title */}
+      <section className="flex items-center justify-between px-4 mt-4 mb-2">
+        <h2 className="text-xl font-bold">Today's News Paper</h2>
+        <button
+          onClick={handleSpeak}
+          aria-label={
+            isMainAudioPlaying ? "음성 읽기 중지" : "뉴스 제목 전체 듣기"
           }
-          alt="volume"
-          className="w-6 h-6 cursor-pointer"
-        />
-      </button>
-    </section>
+          className="cursor-pointer"
+          disabled={isMainAudioLoading}
+        >
+          <img
+            src={
+              isMainAudioPlaying || isMainAudioLoading
+                ? VolumeFilledIcon
+                : VolumeIcon
+            }
+            alt="volume"
+            className="w-6 h-6 cursor-pointer"
+          />
+        </button>
+      </section>
 
-    {/* Articles */}
-    <main className="space-y-4 px-4">
-      {isLoading && (
-        <p className="text-center text-gray-500 mt-10">기사를 불러오는 중...</p>
-      )}
-      {error && (
-        <p className="text-center text-red-500 mt-10 whitespace-pre-line">
-          {error}
-        </p>
-      )}
+      {/* Articles */}
+      <main className="space-y-4 px-4">
+        {isLoading && (
+          <p className="text-center text-gray-500 mt-10">
+            기사를 불러오는 중...
+          </p>
+        )}
+        {error && (
+          <p className="text-center text-red-500 mt-10 whitespace-pre-line">
+            {error}
+          </p>
+        )}
 
-      {!isLoading && !error && articles.length > 0 ? (
-        <>
-          {articles.map((a, index) => (
-            <Article
-              key={a.id || `${a.sectionId}-${a.title}-${index}`}
-              article={a}
-              isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
-              onToggleBookmark={() => handleToggleBookmark(a)}
-              selectedVoiceId={selectedVoiceId}
-            />
-          ))}
+        {!isLoading && !error && articles.length > 0 ? (
+          <>
+            {articles.map((a, index) => (
+              <Article
+                key={a.id || `${a.sectionId}-${a.title}-${index}`}
+                article={a}
+                isBookmarked={a.isBookmarked} // API에서 받은 북마크 상태 직접 전달
+                onToggleBookmark={() => handleToggleBookmark(a)}
+                selectedVoiceId={selectedVoiceId}
+              />
+            ))}
 
-          {/* 페이지네이션 */}
-          <div className="flex justify-center items-center gap-2 mt-8 mb-4">
-            {[0, 1, 2, 3].map((pageNum) => (
-              <button
-                key={pageNum}
-                onClick={() => fetchNews(pageNum)}
-                disabled={isLoading}
-                className={`
+            {/* 페이지네이션 */}
+            <div className="flex justify-center items-center gap-2 mt-8 mb-4">
+              {[0, 1, 2, 3].map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => fetchNews(pageNum)}
+                  disabled={isLoading}
+                  className={`
                     w-10 h-10 rounded-lg font-medium transition-colors
                     ${
                       currentPage === pageNum
@@ -487,37 +489,38 @@ return (
                     }
                     ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                   `}
-              >
-                {pageNum + 1}
-              </button>
-            ))}
+                >
+                  {pageNum + 1}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : !isLoading && !userInfo.username ? (
+          <div className="text-center mt-16 px-4">
+            <div className="mb-6">
+              <span className="text-6xl">📰</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              로그인이 필요합니다
+            </h3>
+            <p className="text-gray-500 mb-6">
+              맞춤 뉴스를 보려면 로그인해주세요
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="bg-[#39235C] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#2d1a47] transition-colors"
+            >
+              로그인하기
+            </button>
           </div>
-        </>
-      ) : !isLoading && !userInfo.username ? (
-        <div className="text-center mt-16 px-4">
-          <div className="mb-6">
-            <span className="text-6xl">📰</span>
-          </div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">
-            로그인이 필요합니다
-          </h3>
-          <p className="text-gray-500 mb-6">
-            맞춤 뉴스를 보려면 로그인해주세요
+        ) : !isLoading && userInfo.username ? (
+          <p className="text-center text-gray-500 mt-10">
+            표시할 뉴스가 없습니다.
           </p>
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-[#39235C] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#2d1a47] transition-colors"
-          >
-            로그인하기
-          </button>
-        </div>
-      ) : !isLoading && userInfo.username ? (
-        <p className="text-center text-gray-500 mt-10">
-          표시할 뉴스가 없습니다.
-        </p>
-      ) : null}
-    </main>
+        ) : null}
+      </main>
 
-    <Footer />
-  </div>
-);
+      <Footer />
+    </div>
+  );
+}
