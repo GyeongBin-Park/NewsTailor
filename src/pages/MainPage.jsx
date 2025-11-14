@@ -255,6 +255,17 @@ export default function MainPage() {
     }
   }, [userInfo.username, fetchNews]);
 
+  // 페이지 이동 시 (컴포넌트 unmount 시) "전체 듣기" 오디오 정지
+  useEffect(() => {
+    // 이 함수는 mainAudioPlayer가 변경되거나 컴포넌트가 사라질 때 실행됩니다.
+    return () => {
+      if (mainAudioPlayer) {
+        mainAudioPlayer.pause(); // 오디오 정지
+        setMainAudioPlayer(null); // 상태 초기화
+      }
+    };
+  }, [mainAudioPlayer]); // mainAudioPlayer 객체를 감시
+
   const handleToggleBookmark = async (articleToToggle) => {
     const token = localStorage.getItem("accessToken");
 
