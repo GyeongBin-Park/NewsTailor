@@ -7,7 +7,12 @@ import CopyIcon from "../icons/copy.svg";
 import BookmarkIcon from "../icons/bookmark_x.svg";
 import BookmarkFilledIcon from "../icons/bookmark_o.svg";
 
-export default function Article({ article, isBookmarked, onToggleBookmark, selectedVoiceId }) {
+export default function Article({
+  article,
+  isBookmarked,
+  onToggleBookmark,
+  selectedVoiceId,
+}) {
   // API 응답에서 summary 필드를 content로 사용 (호환성 유지)
   const title = article.title;
   const content = article.summary || article.content || "";
@@ -41,7 +46,7 @@ export default function Article({ article, isBookmarked, onToggleBookmark, selec
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
+        // Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify({
         input: `${title}. ${content}`,
@@ -146,11 +151,7 @@ export default function Article({ article, isBookmarked, onToggleBookmark, selec
             className="cursor-pointer hover:opacity-70 transition-opacity"
             title="복사하기"
           >
-            <img
-              src={CopyIcon}
-              alt="copy"
-              className="w-5 h-5"
-            />
+            <img src={CopyIcon} alt="copy" className="w-5 h-5" />
           </button>
           <button
             onClick={() => onToggleBookmark(article)}
