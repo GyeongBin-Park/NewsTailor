@@ -416,25 +416,6 @@ export default function MainPage() {
     }
   };
 
-  const synth = window.speechSynthesis;
-  setIsSpeaking(true);
-
-  articles.forEach((article, index) => {
-    const utterance = new SpeechSynthesisUtterance(article.title);
-    utterance.lang = detectLanguage(article.title);
-    const voice = voices.find((v) => v.lang.startsWith(utterance.lang));
-    if (voice) utterance.voice = voice;
-
-    if (index === articles.length - 1) {
-      utterance.onend = () => {
-        setIsSpeaking(false);
-      };
-    }
-
-    synth.speak(utterance);
-  });
-}
-
 return (
   <div className="flex flex-col min-h-screen bg-white pb-20">
     {/* Header */}
