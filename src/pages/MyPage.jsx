@@ -62,10 +62,18 @@ export default function MyPage() {
   useEffect(() => {
     const fetchVoices = async () => {
       setIsLoading(true);
-      const API_URL = "/api/get-voice";
+      const API_URL = "/api/get-voices";
 
       try {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "simba-multilingual",
+          }),
+        });
         if (!response.ok) throw new Error("API 응답 오류");
 
         const data = await response.json();
