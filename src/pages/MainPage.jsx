@@ -13,6 +13,17 @@ import LogoIcon from "/favicon-96x96.png";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const VOICE_STORAGE_KEY = "user_selected_voice_id";
 
+const extractArticleId = (article) => {
+  if (!article) return null;
+  return (
+    article.id ??
+    article.summaryNewsCacheId ??
+    article.summaryId ??
+    article.newsId ??
+    null
+  );
+};
+
 export default function MainPage() {
   const navigate = useNavigate();
 
@@ -29,6 +40,7 @@ export default function MainPage() {
   const [selectedVoiceId, setSelectedVoiceId] = useState(
     () => localStorage.getItem(VOICE_STORAGE_KEY) || ""
   );
+  const [bookmarkedIdList, setBookmarkedIdList] = useState([]);
 
   // 로그인 상태 확인 (리다이렉트 하지 않음)
   useEffect(() => {
@@ -56,16 +68,64 @@ export default function MainPage() {
   }, []);
 
   // 로그아웃 처리
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("username");
     localStorage.removeItem("nickname");
     localStorage.removeItem("interests");
     toast.success("로그아웃 되었습니다.");
     navigate("/login");
-  };
+  }, [navigate]);
 
-  const fetchNews = useCallback(async (page = 0) => {
+  const loadBookmarks = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      setBookmarkedIdList([]);
+      return new Set();
+    }
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/bookmark`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 401) {
+        toast.error("인증이 만료되었습니다. 다시 로그인해주세요.");
+        handleLogout();
+        return new Set();
+      }
+
+      if (!response.ok) {
+        const errorText = await response
+          .text()
+          .catch(() => "북마크를 불러오지 못했습니다.");
+        throw new Error(errorText);
+      }
+
+      const data = await response.json().catch(() => []);
+      const normalized = Array.isArray(data) ? data : [];
+
+      const ids = normalized
+        .map((bookmark) => extractArticleId(bookmark))
+        .filter((id) => id !== null && id !== undefined);
+
+      setBookmarkedIdList(ids);
+      return new Set(ids);
+    } catch (error) {
+      console.error("북마크 로드 오류:", error);
+      toast.error(error.message || "북마크 목록을 불러오지 못했습니다.");
+      setBookmarkedIdList([]);
+      return new Set();
+    }
+  }, [handleLogout]);
+
+  const fetchNews = useCallback(
+    async (page = 0, bookmarkIdSetOverride = null) => {
     setIsLoading(true);
     setError(null);
     const token = localStorage.getItem("accessToken");
@@ -200,12 +260,24 @@ export default function MainPage() {
         toast.info("현재 표시할 요약 뉴스가 없습니다.");
       }
       
-      // 북마크 상태는 별도로 관리 (초기에는 모두 false)
-      // 북마크 목록을 조회하여 매칭할 수 있지만, 일단 기본값 false로 설정
-      const articlesWithBookmark = newsArray.map(article => ({
-        ...article,
-        isBookmarked: false, // 초기값, 실제 북마크 상태는 북마크 API에서 확인 필요
-      }));
+      const effectiveBookmarkIds =
+        bookmarkIdSetOverride instanceof Set
+          ? bookmarkIdSetOverride
+          : new Set(bookmarkedIdList);
+
+      const articlesWithBookmark = newsArray.map((article) => {
+        const articleId = extractArticleId(article);
+        const isBookmarked =
+          articleId !== null && effectiveBookmarkIds.has(articleId);
+
+        return {
+          ...article,
+          ...(articleId !== null && article.id === undefined
+            ? { id: articleId }
+            : {}),
+          isBookmarked,
+        };
+      });
       
       console.log('✅ 최종 articles:', articlesWithBookmark);
       setArticles(articlesWithBookmark);
@@ -217,17 +289,29 @@ export default function MainPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [navigate]);
+    },
+    [navigate, bookmarkedIdList, handleLogout]
+  );
 
   // 로그인된 경우에만 뉴스 불러오기
   useEffect(() => {
-    if (userInfo.username) {
-      fetchNews();
-    } else {
-      // 로그인 안 된 경우 로딩 상태 해제
+    if (!userInfo.username) {
       setIsLoading(false);
+      return;
     }
-  }, [userInfo.username, fetchNews]);
+
+    let isMounted = true;
+
+    (async () => {
+      const bookmarkSet = await loadBookmarks();
+      if (!isMounted) return;
+      await fetchNews(0, bookmarkSet);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userInfo.username, loadBookmarks, fetchNews]);
 
   const handleToggleBookmark = async (articleToToggle) => {
     const token = localStorage.getItem("accessToken");
@@ -286,12 +370,46 @@ export default function MainPage() {
             : article;
         })
       );
+
+      setBookmarkedIdList((prev) => {
+        if (summaryNewsCacheId === undefined || summaryNewsCacheId === null) {
+          return prev;
+        }
+        if (isBookmarked) {
+          return prev.filter((id) => id !== summaryNewsCacheId);
+        }
+        if (prev.includes(summaryNewsCacheId)) {
+          return prev;
+        }
+        return [...prev, summaryNewsCacheId];
+      });
       
       toast.success(
         isBookmarked ? "북마크가 삭제되었습니다." : "북마크에 추가되었습니다."
       );
     } catch (err) {
-      toast.error(err.message);
+      const message = err.message || "북마크 처리에 실패했습니다.";
+      const alreadyBookmarked =
+        !isBookmarked && /이미\s*북마크|already\s*bookmarked/i.test(message);
+
+      if (alreadyBookmarked) {
+        toast.success("이미 북마크된 뉴스입니다.");
+        setArticles(
+          articles.map((article) => {
+            const isMatch =
+              article.id === articleToToggle.id ||
+              (!article.id &&
+                !articleToToggle.id &&
+                article.sectionId === articleToToggle.sectionId &&
+                article.title === articleToToggle.title);
+            return isMatch ? { ...article, isBookmarked: true } : article;
+          })
+        );
+        await loadBookmarks();
+        return;
+      }
+
+      toast.error(message);
       console.error("북마크 처리 오류:", err);
     }
   };

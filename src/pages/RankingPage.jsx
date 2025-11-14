@@ -100,7 +100,7 @@ export default function RankingPage() {
     <div className="flex flex-col min-h-screen bg-white pb-20">
       <Header
         left_img={BackIcon}
-        text="랭킹 뉴스"
+        text="데일리 하이라이트"
         onClick={() => navigate("/")}
       />
 
@@ -119,6 +119,7 @@ export default function RankingPage() {
           <div className="space-y-2">
             {articles.map((article, index) => {
               const isExpanded = expandedItems.has(article.id || index);
+              const displayRank = index + 1;
               return (
                 <div
                   key={article.id || index}
@@ -134,16 +135,14 @@ export default function RankingPage() {
                         <span className="text-xs font-semibold text-gray-500">
                           {article.press || "언론사"}
                         </span>
-                        {article.sectionId && (
-                          <span className="text-xs text-gray-400">
-                            {getSectionName(article.sectionId)}
-                          </span>
-                        )}
-                        {article.rank && (
-                          <span className="text-xs text-gray-400">
-                            랭킹 #{article.rank}
-                          </span>
-                        )}
+                        <span className="text-xs text-gray-400">
+                          {article.sectionId
+                            ? getSectionName(article.sectionId)
+                            : "전체"}
+                        </span>
+                        <span className="text-xs text-[#39235C] font-semibold">
+                          랭킹 #{displayRank}
+                        </span>
                       </div>
                       <h3 className="text-base font-medium text-gray-900 line-clamp-2">
                         {article.title}
