@@ -66,7 +66,8 @@ export default function EditProfilePage() {
 
     const loadProfile = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/api/user/profile`, {
+        // 명세에 따라 GET /api/user/info 사용
+        const response = await fetch(`${BACKEND_URL}/api/user/info`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -80,6 +81,10 @@ export default function EditProfilePage() {
             toast.error("로그인이 만료되었습니다. 다시 로그인해주세요.");
             navigate("/login");
             return;
+          } else if (response.status === 404) {
+            toast.error("사용자 정보를 찾을 수 없습니다.");
+            navigate("/login");
+            return;
           }
 
           const errorText = await response.text().catch(() => "프로필 정보를 불러오지 못했습니다.");
@@ -88,13 +93,17 @@ export default function EditProfilePage() {
 
         const data = await response.json();
 
+        // 명세에 따라 nickname, interests (문자열 배열) 처리
         const nicknameFromServer = data.nickname?.trim()?.length ? data.nickname : username;
         setNickname(nicknameFromServer);
         setInitialNickname(nicknameFromServer);
 
-        const interestIdsFromServer = Array.isArray(data.interestIds) ? data.interestIds : [];
+        // interests는 ["정치", "경제", "IT/과학"] 형식의 문자열 배열
+        const interestsFromServer = Array.isArray(data.interests) ? data.interests : [];
+        
+        // 문자열 배열을 카테고리 ID로 변환
         let categoryIds = categories
-          .filter(cat => interestIdsFromServer.includes(cat.backendId))
+          .filter(cat => interestsFromServer.includes(cat.name))
           .map(cat => cat.id);
 
         if (categoryIds.length === 0) {
