@@ -93,7 +93,7 @@ export default function MainPage() {
       const data = await response.json().catch(() => []);
       const normalized = Array.isArray(data) ? data : [];
       const ids = normalized
-        .map((bookmark) => extractArticleId(bookmark))
+        .map((bookmark) => extractArticleId(bookmark.summaryNews || bookmark))
         .filter((id) => id !== null && id !== undefined);
       setBookmarkedIdList(ids);
       return new Set(ids);
