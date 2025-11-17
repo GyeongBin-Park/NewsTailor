@@ -326,6 +326,7 @@ export default function MainPage() {
     let isMounted = true;
 
     const loadDataSequentially = async () => {
+      setIsLoading(true);
       const bookmarkSet = await loadBookmarks();
       if (!isMounted) return;
       await fetchNews(0, bookmarkSet);
