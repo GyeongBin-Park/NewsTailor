@@ -92,9 +92,11 @@ export default function MainPage() {
       if (!response.ok) throw new Error("북마크 로드 실패");
       const data = await response.json().catch(() => []);
       const normalized = Array.isArray(data) ? data : [];
+
       const ids = normalized
         .map((bookmark) => extractArticleId(bookmark.summaryNews || bookmark))
         .filter((id) => id !== null && id !== undefined);
+        
       setBookmarkedIdList(ids);
       return new Set(ids);
     } catch (error) {
