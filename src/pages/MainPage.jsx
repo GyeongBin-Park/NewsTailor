@@ -325,16 +325,17 @@ export default function MainPage() {
 
     let isMounted = true;
 
-    (async () => {
+    const loadDataSequentially = async () => {
       const bookmarkSet = await loadBookmarks();
       if (!isMounted) return;
       await fetchNews(0, bookmarkSet);
-    })();
+    };
 
+    loadDataSequentially();
     return () => {
       isMounted = false;
     };
-  }, [userInfo.username /*, loadBookmarks, fetchNews*/]);
+  }, [userInfo.username]);
 
   const handleToggleBookmark = async (articleToToggle) => {
     const token = localStorage.getItem("accessToken");
