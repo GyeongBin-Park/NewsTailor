@@ -44,7 +44,7 @@ export default function MainPage() {
   const [selectedVoiceId, setSelectedVoiceId] = useState(
     () => localStorage.getItem(VOICE_STORAGE_KEY) || ""
   );
-  const [bookmarkedIdList, setBookmarkedIdList] = useState([]);
+  const [bookmarkedUrlSet, setBookmarkedUrlSet] = useState(new Set());
 
   // 로그인 상태 확인 (리다이렉트 하지 않음)
   useEffect(() => {
@@ -71,8 +71,8 @@ export default function MainPage() {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
-      setBookmarkedIdList([]);
-      return new Set(bookmarkedIdList);
+      setBookmarkedUrlSet(new Set());
+      return new Set();
     }
 
     try {
@@ -94,15 +94,19 @@ export default function MainPage() {
       const data = await response.json().catch(() => []);
       const normalized = Array.isArray(data) ? data : [];
 
-      const ids = normalized
-        .map((bookmark) => extractArticleId(bookmark.summaryNews || bookmark))
-        .filter((id) => id !== null && id !== undefined);
+      const urls = normalized
+        .map((bookmark) => {
+          // 'summaryNews' 객체가 중첩되어 있거나, 객체 자체에 url이 있을 수 있습니다.
+          const item = bookmark.summaryNews || bookmark;
+          return item.url;
+        })
+        .filter((url) => url); // null이나 undefined가 아닌 유효한 url만 필터링
 
-      setBookmarkedIdList(ids);
-      return new Set(ids);
+      setBookmarkedUrlSet(new Set(urls));
+      return new Set(urls);
     } catch (error) {
       console.error("북마크 로드 오류:", error);
-      setBookmarkedIdList([]);
+      setBookmarkedUrlSet(new Set());
       return new Set();
     }
   }, [handleLogout]);
@@ -264,10 +268,11 @@ export default function MainPage() {
         const effectiveBookmarkIds =
           bookmarkIdSetOverride instanceof Set
             ? bookmarkIdSetOverride
-            : new Set();
+            : bookmarkedUrlSet;
 
         const articlesWithBookmark = newsArray.map((article) => {
-          const articleId = extractArticleId(article);
+          const isBookmarked =
+            article.url && effectiveBookmarkIds.has(article.url);
           console.log(
             "--- 2. [뉴스 ID] API가 반환한 개별 뉴스 ID ---",
             articleId,
@@ -275,13 +280,11 @@ export default function MainPage() {
             typeof articleId,
             ")"
           ); // 👈 이 줄 추가
-          const isBookmarked =
-            articleId !== null && effectiveBookmarkIds.has(articleId);
 
           return {
             ...article,
-            ...(articleId !== null && article.id === undefined
-              ? { id: articleId }
+            ...(article.id === undefined
+              ? { id: extractArticleId(article) || article.url }
               : {}),
             isBookmarked,
           };
