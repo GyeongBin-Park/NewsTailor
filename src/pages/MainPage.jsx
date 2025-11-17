@@ -71,7 +71,7 @@ export default function MainPage() {
 
     if (!token) {
       setBookmarkedIdList([]);
-      return new Set();
+      return new Set(bookmarkedIdList);
     }
 
     try {
