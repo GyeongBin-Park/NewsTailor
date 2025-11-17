@@ -286,7 +286,7 @@ export default function MainPage() {
         const effectiveBookmarkIds =
           bookmarkIdSetOverride instanceof Set
             ? bookmarkIdSetOverride
-            : new Set(bookmarkedIdList);
+            : new Set();
 
         const articlesWithBookmark = newsArray.map((article) => {
           const articleId = extractArticleId(article);
@@ -313,7 +313,7 @@ export default function MainPage() {
         setIsLoading(false);
       }
     },
-    [navigate, bookmarkedIdList, handleLogout]
+    [navigate, handleLogout]
   );
 
   // 로그인된 경우에만 뉴스 불러오기
