@@ -272,20 +272,18 @@ export default function MainPage() {
 
         const articlesWithBookmark = newsArray.map((article) => {
           const isBookmarked =
-            article.url && effectiveBookmarkIds.has(article.url);
-          console.log(
-            "--- 2. [뉴스 ID] API가 반환한 개별 뉴스 ID ---",
-            articleId,
-            "(타입:",
-            typeof articleId,
-            ")"
-          ); // 👈 이 줄 추가
+            article.url && effectiveBookmarkIds.has(article.url); // 👈 URL로 비교
+          // React의 key prop을 위한 고유 ID를 생성합니다.
+          // 1. article.id가 있으면 사용
+          // 2. 없으면 뉴스 ID(280번대)라도 추출
+          // 3. 그것도 없으면 URL을 사용
+
+          const uniqueKeyId =
+            article.id || extractArticleId(article) || article.url;
 
           return {
             ...article,
-            ...(article.id === undefined
-              ? { id: extractArticleId(article) || article.url }
-              : {}),
+            id: uniqueKeyId, // 👈 덮어쓰기 (key를 위해 'id' 필드 보장)
             isBookmarked,
           };
         });
