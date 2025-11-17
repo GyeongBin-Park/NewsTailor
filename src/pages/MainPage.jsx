@@ -268,6 +268,13 @@ export default function MainPage() {
 
         const articlesWithBookmark = newsArray.map((article) => {
           const articleId = extractArticleId(article);
+          console.log(
+            "--- 2. [뉴스 ID] API가 반환한 개별 뉴스 ID ---",
+            articleId,
+            "(타입:",
+            typeof articleId,
+            ")"
+          ); // 👈 이 줄 추가
           const isBookmarked =
             articleId !== null && effectiveBookmarkIds.has(articleId);
 
@@ -306,6 +313,7 @@ export default function MainPage() {
     const loadDataSequentially = async () => {
       setIsLoading(true);
       const bookmarkSet = await loadBookmarks();
+      console.log("--- 1. [북마크 Set] 로드된 북마크 ID 목록 ---", bookmarkSet); // 👈 이 줄 추가
       if (!isMounted) return;
       await fetchNews(0, bookmarkSet);
     };
