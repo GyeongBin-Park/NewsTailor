@@ -96,7 +96,7 @@ export default function MainPage() {
       const ids = normalized
         .map((bookmark) => extractArticleId(bookmark.summaryNews || bookmark))
         .filter((id) => id !== null && id !== undefined);
-        
+
       setBookmarkedIdList(ids);
       return new Set(ids);
     } catch (error) {
