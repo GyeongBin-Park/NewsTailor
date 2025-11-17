@@ -339,8 +339,6 @@ export default function MainPage() {
   const handleToggleBookmark = async (articleToToggle) => {
     const token = localStorage.getItem("accessToken");
 
-    // API 응답에 id 필드가 있을 수도 있고 없을 수도 있음
-    // 명세에는 없지만 실제 응답에 포함될 수 있음
     const articleInState = articles.find(
       (a) =>
         a.id === articleToToggle.id ||
@@ -350,23 +348,32 @@ export default function MainPage() {
     if (!articleInState) return;
 
     const isBookmarked = articleInState.isBookmarked;
-
-    // API 명세에 맞게 북마크 API 수정
-    // POST /api/bookmark?summaryNewsCacheId={id} 또는 DELETE
-    // 주의: 명세에는 id 필드가 없지만, 실제 응답에는 포함되어야 함
-    const summaryNewsCacheId =
-      articleToToggle.id || articleToToggle.summaryNewsCacheId;
-
-    if (!summaryNewsCacheId) {
-      toast.error(
-        "북마크할 수 없습니다: 뉴스 ID가 없습니다. 백엔드 응답에 id 필드가 포함되어야 합니다."
-      );
-      console.error("뉴스 데이터:", articleToToggle);
-      return;
-    }
-
-    const endpoint = `${BACKEND_URL}/api/bookmark?summaryNewsCacheId=${summaryNewsCacheId}`;
     const method = isBookmarked ? "DELETE" : "POST";
+    let endpoint = ""; // 👈 1. 엔드포인트를 비워둡니다.
+    // ▼▼▼▼▼ [ 여기가 핵심 수정 사항입니다 ] ▼▼▼▼▼
+
+    if (isBookmarked) {
+      // 2. (삭제 시) 새 API 명세: URL 기반으로 삭제
+      const articleUrl = articleToToggle.url;
+      if (!articleUrl) {
+        toast.error("북마크를 삭제할 수 없습니다: 뉴스 URL이 없습니다.");
+        console.error("뉴스 데이터에 URL이 없습니다:", articleToToggle);
+        return;
+      } // API 명세에 따라 URL 인코딩
+      const encodedUrl = encodeURIComponent(articleUrl);
+      endpoint = `${BACKEND_URL}/api/bookmark?url=${encodedUrl}`;
+    } else {
+      // 3. (추가 시) 기존 API 명세: ID 기반으로 추가
+      const summaryNewsCacheId =
+        articleToToggle.id || articleToToggle.summaryNewsCacheId;
+
+      if (!summaryNewsCacheId) {
+        toast.error("북마크할 수 없습니다: 뉴스 ID가 없습니다.");
+        console.error("뉴스 데이터:", articleToToggle);
+        return;
+      }
+      endpoint = `${BACKEND_URL}/api/bookmark?summaryNewsCacheId=${summaryNewsCacheId}`;
+    }
 
     try {
       const response = await fetch(endpoint, {
