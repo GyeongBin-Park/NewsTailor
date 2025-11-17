@@ -398,16 +398,23 @@ export default function MainPage() {
         })
       ); // (기존 loadBookmarks() 호출 로직 대신, 상태를 즉시 업데이트)
 
-      setBookmarkedIdList((prev) => {
-        const articleId = extractArticleId(articleToToggle);
-        if (articleId === undefined || articleId === null) {
-          return prev;
-        }
+      // bookmarkedUrlSet 상태 업데이트
+      setBookmarkedUrlSet((prevSet) => {
+        const newSet = new Set(prevSet);
+        const articleUrl = articleToToggle.url;
+
+        if (!articleUrl) return prevSet; // URL 없으면 아무것도 안 함
+
         if (isBookmarked) {
-          return prev.filter((id) => id !== articleId);
+          // 삭제
+          newSet.delete(articleUrl);
+        } else {
+          // 추가
+          newSet.add(articleUrl);
         }
-        return [...prev, articleId];
+        return newSet;
       });
+
       toast.success(
         isBookmarked ? "북마크가 삭제되었습니다." : "북마크에 추가되었습니다."
       );
@@ -440,7 +447,17 @@ export default function MainPage() {
             return isMatch ? { ...article, isBookmarked: false } : article;
           })
         );
-        await loadBookmarks();
+
+        // 상태 강제 동기화
+        setBookmarkedUrlSet((prevSet) => {
+          const newSet = new Set(prevSet);
+          const articleUrl = articleToToggle.url;
+          if (articleUrl) {
+            newSet.delete(articleUrl);
+          }
+          return newSet;
+        });
+
         return;
       }
 
@@ -457,7 +474,16 @@ export default function MainPage() {
           })
         );
 
-        await loadBookmarks();
+        // 상태 강제 동기화
+        setBookmarkedUrlSet((prevSet) => {
+          const newSet = new Set(prevSet);
+          const articleUrl = articleToToggle.url;
+          if (articleUrl) {
+            newSet.add(articleUrl);
+          }
+          return newSet;
+        });
+
         return;
       }
 
