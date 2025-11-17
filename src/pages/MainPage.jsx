@@ -94,7 +94,7 @@ export default function MainPage() {
       const normalized = Array.isArray(data) ? data : [];
 
       const ids = normalized
-        .map((bookmark) => extractArticleId(bookmark))
+        .map((bookmark) => extractArticleId(bookmark.summaryNews || bookmark))
         .filter((id) => id !== null && id !== undefined);
 
       setBookmarkedIdList(ids);
@@ -313,6 +313,8 @@ export default function MainPage() {
     return () => {
       isMounted = false;
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo.username]);
 
   const handleToggleBookmark = async (articleToToggle) => {
