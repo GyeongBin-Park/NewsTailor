@@ -454,15 +454,7 @@ export default function MainPage() {
           })
         );
 
-        if (articleId) {
-          setBookmarkedIdList((prevList) => {
-            // 이미 리스트에 있다면 바꾸지 않고, 없다면 추가합니다.
-            if (prevList.includes(articleId)) {
-              return prevList;
-            }
-            return [...prevList, articleId];
-          });
-        }
+        await loadBookmarks();
         return;
       }
 
