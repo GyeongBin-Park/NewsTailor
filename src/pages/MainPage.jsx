@@ -15,13 +15,14 @@ const VOICE_STORAGE_KEY = "user_selected_voice_id";
 
 const extractArticleId = (article) => {
   if (!article) return null;
-  return (
+  const id =
     article.id ??
     article.summaryNewsCacheId ??
     article.summaryId ??
     article.newsId ??
-    null
-  );
+    null; // ID가 null이나 undefined가 아닐 경우, 무조건 문자열로 변환
+
+  return id !== null && id !== undefined ? String(id) : null;
 };
 
 export default function MainPage() {
