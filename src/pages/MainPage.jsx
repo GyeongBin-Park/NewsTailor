@@ -56,22 +56,6 @@ export default function MainPage() {
     }
   }, []);
 
-  /*
-  // 음성 목록 불러오기
-  useEffect(() => {
-    const loadVoices = () => {
-      setVoices(window.speechSynthesis.getVoices());
-    };
-
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    loadVoices();
-
-    return () => {
-      window.speechSynthesis.onvoiceschanged = null;
-    };
-  }, []);
-  */
-
   // 로그아웃 처리
   const handleLogout = useCallback(() => {
     localStorage.removeItem("accessToken");
@@ -105,25 +89,16 @@ export default function MainPage() {
         return new Set();
       }
 
-      if (!response.ok) {
-        const errorText = await response
-          .text()
-          .catch(() => "북마크를 불러오지 못했습니다.");
-        throw new Error(errorText);
-      }
-
+      if (!response.ok) throw new Error("북마크 로드 실패");
       const data = await response.json().catch(() => []);
       const normalized = Array.isArray(data) ? data : [];
-
       const ids = normalized
         .map((bookmark) => extractArticleId(bookmark))
         .filter((id) => id !== null && id !== undefined);
-
       setBookmarkedIdList(ids);
       return new Set(ids);
     } catch (error) {
       console.error("북마크 로드 오류:", error);
-      toast.error(error.message || "북마크 목록을 불러오지 못했습니다.");
       setBookmarkedIdList([]);
       return new Set();
     }
@@ -343,7 +318,7 @@ export default function MainPage() {
 
     const articleInState = articles.find(
       (a) =>
-        a.id === articleToToggle.id ||
+        (a.id && a.id === articleToToggle.id) ||
         (a.sectionId === articleToToggle.sectionId &&
           a.title === articleToToggle.title)
     );
@@ -365,8 +340,7 @@ export default function MainPage() {
       endpoint = `${BACKEND_URL}/api/bookmark?url=${encodedUrl}`;
     } else {
       // 2. (추가) 기존 API 명세: ID 기반으로 추가
-      const summaryNewsCacheId =
-        articleToToggle.id || articleToToggle.summaryNewsCacheId;
+      const summaryNewsCacheId = extractArticleId(articleToToggle);
 
       if (!summaryNewsCacheId) {
         toast.error("북마크할 수 없습니다: 뉴스 ID가 없습니다.");
@@ -399,10 +373,8 @@ export default function MainPage() {
       setArticles(
         articles.map((article) => {
           const isMatch =
-            article.id === articleToToggle.id ||
-            (!article.id &&
-              !articleToToggle.id &&
-              article.sectionId === articleToToggle.sectionId &&
+            (article.id && article.id === articleToToggle.id) ||
+            (article.sectionId === articleToToggle.sectionId &&
               article.title === articleToToggle.title);
           return isMatch
             ? { ...article, isBookmarked: !isBookmarked }
@@ -417,9 +389,6 @@ export default function MainPage() {
         }
         if (isBookmarked) {
           return prev.filter((id) => id !== articleId);
-        }
-        if (prev.includes(articleId)) {
-          return prev;
         }
         return [...prev, articleId];
       });
@@ -449,10 +418,8 @@ export default function MainPage() {
         setArticles(
           articles.map((article) => {
             const isMatch =
-              article.id === articleToToggle.id ||
-              (!article.id &&
-                !articleToToggle.id &&
-                article.sectionId === articleToToggle.sectionId &&
+              (article.id && article.id === articleToToggle.id) ||
+              (article.sectionId === articleToToggle.sectionId &&
                 article.title === articleToToggle.title);
             return isMatch ? { ...article, isBookmarked: false } : article;
           })
@@ -466,10 +433,8 @@ export default function MainPage() {
         setArticles(
           articles.map((article) => {
             const isMatch =
-              article.id === articleToToggle.id ||
-              (!article.id &&
-                !articleToToggle.id &&
-                article.sectionId === articleToToggle.sectionId &&
+              (article.id && article.id === articleToToggle.id) ||
+              (article.sectionId === articleToToggle.sectionId &&
                 article.title === articleToToggle.title);
             return isMatch ? { ...article, isBookmarked: true } : article;
           })
@@ -482,14 +447,6 @@ export default function MainPage() {
       console.error("북마크 처리 오류:", err);
     }
   };
-
-  /*
-  // 음성 읽기 기능
-  const detectLanguage = (text) => {
-    const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ가-힣]/;
-    return koreanRegex.test(text) ? "ko-KR" : "en-US";
-  };
-  */
 
   const handleSpeak = async () => {
     // 이미 재생 중이면 정지
@@ -567,6 +524,15 @@ export default function MainPage() {
       setIsMainAudioLoading(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (mainAudioPlayer) {
+        mainAudioPlayer.pause();
+        setMainAudioPlayer(null);
+      }
+    };
+  }, [mainAudioPlayer]);
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
