@@ -443,6 +443,7 @@ export default function MainPage() {
 
       if (alreadyBookmarked) {
         toast.success("이미 북마크된 뉴스입니다.");
+        const articleId = extractArticleId(articleToToggle);
         setArticles(
           articles.map((article) => {
             const isMatch =
@@ -452,7 +453,16 @@ export default function MainPage() {
             return isMatch ? { ...article, isBookmarked: true } : article;
           })
         );
-        await loadBookmarks();
+
+        if (articleId) {
+          setBookmarkedIdList((prevList) => {
+            // 이미 리스트에 있다면 바꾸지 않고, 없다면 추가합니다.
+            if (prevList.includes(articleId)) {
+              return prevList;
+            }
+            return [...prevList, articleId];
+          });
+        }
         return;
       }
 
