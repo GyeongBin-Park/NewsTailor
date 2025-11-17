@@ -131,9 +131,9 @@ export default function MainPage() {
 
   const fetchNews = useCallback(
     async (page = 0, bookmarkIdSetOverride = null) => {
-    setIsLoading(true);
-    setError(null);
-    const token = localStorage.getItem("accessToken");
+      setIsLoading(true);
+      setError(null);
+      const token = localStorage.getItem("accessToken");
 
       if (!token) {
         setIsLoading(false);
@@ -264,54 +264,54 @@ export default function MainPage() {
           throw new Error("뉴스 목록을 불러오는 데 실패했습니다.");
         }
 
-      // API 응답은 배열을 직접 반환 (명세에 따르면)
-      const data = await response.json();
-      
-      console.log('✅ 응답 데이터:', data);
-      console.log('  - 타입:', Array.isArray(data) ? '배열' : typeof data);
-      console.log('  - 길이:', Array.isArray(data) ? data.length : 'N/A');
-      
-      // 배열인지 확인하고 처리
-      const newsArray = Array.isArray(data) ? data : (data.content || []);
-      
-      console.log('📰 처리된 뉴스 배열:', newsArray);
-      console.log('  - 뉴스 개수:', newsArray.length);
-      
-      if (newsArray.length === 0) {
-        console.warn('⚠️ 뉴스 배열이 비어있습니다!');
-        setError("표시할 뉴스가 없습니다.");
-        toast.info("현재 표시할 요약 뉴스가 없습니다.");
+        // API 응답은 배열을 직접 반환 (명세에 따르면)
+        const data = await response.json();
+
+        console.log("✅ 응답 데이터:", data);
+        console.log("  - 타입:", Array.isArray(data) ? "배열" : typeof data);
+        console.log("  - 길이:", Array.isArray(data) ? data.length : "N/A");
+
+        // 배열인지 확인하고 처리
+        const newsArray = Array.isArray(data) ? data : data.content || [];
+
+        console.log("📰 처리된 뉴스 배열:", newsArray);
+        console.log("  - 뉴스 개수:", newsArray.length);
+
+        if (newsArray.length === 0) {
+          console.warn("⚠️ 뉴스 배열이 비어있습니다!");
+          setError("표시할 뉴스가 없습니다.");
+          toast.info("현재 표시할 요약 뉴스가 없습니다.");
+        }
+
+        const effectiveBookmarkIds =
+          bookmarkIdSetOverride instanceof Set
+            ? bookmarkIdSetOverride
+            : new Set(bookmarkedIdList);
+
+        const articlesWithBookmark = newsArray.map((article) => {
+          const articleId = extractArticleId(article);
+          const isBookmarked =
+            articleId !== null && effectiveBookmarkIds.has(articleId);
+
+          return {
+            ...article,
+            ...(articleId !== null && article.id === undefined
+              ? { id: articleId }
+              : {}),
+            isBookmarked,
+          };
+        });
+
+        console.log("✅ 최종 articles:", articlesWithBookmark);
+        setArticles(articlesWithBookmark);
+        setCurrentPage(page);
+      } catch (err) {
+        setError(err.message);
+        console.error("뉴스 로딩 오류:", err);
+        toast.error("뉴스를 불러오는 데 실패했습니다.");
+      } finally {
+        setIsLoading(false);
       }
-      
-      const effectiveBookmarkIds =
-        bookmarkIdSetOverride instanceof Set
-          ? bookmarkIdSetOverride
-          : new Set(bookmarkedIdList);
-
-      const articlesWithBookmark = newsArray.map((article) => {
-        const articleId = extractArticleId(article);
-        const isBookmarked =
-          articleId !== null && effectiveBookmarkIds.has(articleId);
-
-        return {
-          ...article,
-          ...(articleId !== null && article.id === undefined
-            ? { id: articleId }
-            : {}),
-          isBookmarked,
-        };
-      });
-      
-      console.log('✅ 최종 articles:', articlesWithBookmark);
-      setArticles(articlesWithBookmark);
-      setCurrentPage(page);
-    } catch (err) {
-      setError(err.message);
-      console.error("뉴스 로딩 오류:", err);
-      toast.error("뉴스를 불러오는 데 실패했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
     },
     [navigate, bookmarkedIdList, handleLogout]
   );
@@ -334,7 +334,7 @@ export default function MainPage() {
     return () => {
       isMounted = false;
     };
-  }, [userInfo.username, loadBookmarks, fetchNews]);
+  }, [userInfo.username /*, loadBookmarks, fetchNews*/]);
 
   const handleToggleBookmark = async (articleToToggle) => {
     const token = localStorage.getItem("accessToken");
@@ -415,7 +415,7 @@ export default function MainPage() {
         }
         return [...prev, summaryNewsCacheId];
       });
-      
+
       toast.success(
         isBookmarked ? "북마크가 삭제되었습니다." : "북마크에 추가되었습니다."
       );
