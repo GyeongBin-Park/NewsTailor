@@ -94,7 +94,7 @@ export default function MainPage() {
       const normalized = Array.isArray(data) ? data : [];
 
       const ids = normalized
-        .map((bookmark) => extractArticleId(bookmark.summaryNews || bookmark))
+        .map((bookmark) => extractArticleId(bookmark))
         .filter((id) => id !== null && id !== undefined);
 
       setBookmarkedIdList(ids);
