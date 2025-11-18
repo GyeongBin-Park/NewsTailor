@@ -40,7 +40,7 @@ export default function MainPage() {
   const [isMainAudioLoading, setIsMainAudioLoading] = useState(false);
   // "전체 듣기" 오디오 플레이어 객체
   const [mainAudioPlayer, setMainAudioPlayer] = useState(null);
-  // const [voices, setVoices] = useState([]);
+  const isSequencePlayingRef = useRef(false);
 
   const [selectedVoiceId, setSelectedVoiceId] = useState(
     () => localStorage.getItem(VOICE_STORAGE_KEY) || ""
@@ -487,13 +487,22 @@ export default function MainPage() {
     }
   };
 
+  const stopAudio = () => {
+    if (mainAudioPlayer) {
+      mainAudioPlayer.pause();
+      mainAudioPlayer.currentTime = 0;
+      setMainAudioPlayer(null);
+    }
+    setIsMainAudioPlaying(false);
+    setIsMainAudioLoading(false);
+    isSequencePlayingRef.current = false;
+  };
+
   // 현재 페이지만 읽기
   const handleSpeakCurrentPage = async () => {
     // 이미 재생 중이면 정지
-    if (mainAudioPlayer) {
-      mainAudioPlayer.pause();
-      setMainAudioPlayer(null);
-      setIsMainAudioPlaying(false);
+    if (isMainAudioPlaying || isMainAudioLoading) {
+      stopAudio();
       return;
     }
 
@@ -504,26 +513,29 @@ export default function MainPage() {
     }
 
     setIsMainAudioLoading(true);
+    isSequencePlayingRef.current = false;
 
     // 현재 페이지의 뉴스만 읽기
-    const allNews = articles.map((article) => {
-      const title = article.title || "";
-      const summary = article.summary || article.content || "";
-      return `${title}. ${summary}`;
-    }).join(". ");
+    const allNews = articles
+      .map((article) => {
+        const title = article.title || "";
+        const summary = article.summary || article.content || "";
+        return `${title}. ${summary}`;
+      })
+      .join(". ");
 
-    const fullText = allNews ? `오늘의 뉴스. ${allNews}` : "오늘의 뉴스가 없습니다.";
+    const fullText = allNews
+      ? `오늘의 뉴스. ${allNews}`
+      : "오늘의 뉴스가 없습니다.";
 
-    await playAudio(fullText);
+    await playAudio(fullText, null);
   };
 
   // 전체 페이지 읽기
   const handleSpeakAllPages = async () => {
     // 이미 재생 중이면 정지
-    if (mainAudioPlayer) {
-      mainAudioPlayer.pause();
-      setMainAudioPlayer(null);
-      setIsMainAudioPlaying(false);
+    if (isMainAudioPlaying || isMainAudioLoading) {
+      stopAudio();
       return;
     }
 
@@ -534,6 +546,7 @@ export default function MainPage() {
     }
 
     setIsMainAudioLoading(true);
+    isSequencePlayingRef.current = true;
 
     try {
       const token = localStorage.getItem("accessToken");
@@ -548,6 +561,9 @@ export default function MainPage() {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const separator = BACKEND_URL.endsWith("/") ? "" : "/";
 
+      const chunkedTexts = []; // 페이지별 텍스트를 저장할 배열
+
+      // 1. 모든 페이지(0-3)의 텍스트를 가져와 배열에 저장
       for (let page = 0; page < 4; page++) {
         try {
           const response = await fetch(
@@ -564,32 +580,72 @@ export default function MainPage() {
           if (response.ok) {
             const data = await response.json();
             const newsArray = Array.isArray(data) ? data : data.content || [];
-            allPagesArticles.push(...newsArray);
+
+            if (newsArray.length > 0) {
+              const pageText = newsArray
+                .map((article) => {
+                  const title = article.title || "";
+                  const summary = article.summary || article.content || "";
+                  return `${title}. ${summary}`;
+                })
+                .join(". ");
+
+              // 페이지 시작 멘트 추가
+              chunkedTexts.push(`${page + 1}페이지 뉴스입니다. ${pageText}`);
+            }
           }
         } catch (error) {
           console.error(`페이지 ${page} 로드 실패:`, error);
         }
       }
 
-      // 모든 뉴스를 합치기
-      const allNews = allPagesArticles.map((article) => {
-        const title = article.title || "";
-        const summary = article.summary || article.content || "";
-        return `${title}. ${summary}`;
-      }).join(". ");
+      if (chunkedTexts.length === 0) {
+        toast.info("재생할 뉴스가 없습니다.");
+        stopAudio();
+        return;
+      }
 
-      const fullText = allNews ? `오늘의 뉴스. ${allNews}` : "오늘의 뉴스가 없습니다.";
+      // 2. 순차 재생 함수 정의
+      let currentIndex = 0;
 
-      await playAudio(fullText);
+      const playNextChunk = () => {
+        // 사용자가 중지 버튼을 눌렀으면 시퀀스 중단
+        if (!isSequencePlayingRef.current) {
+          stopAudio();
+          return;
+        }
+
+        // 모든 페이지 재생 완료
+        if (currentIndex >= chunkedTexts.length) {
+          toast.success("모든 뉴스 재생이 완료되었습니다.");
+          stopAudio();
+          return;
+        }
+
+        const textToPlay = chunkedTexts[currentIndex];
+        currentIndex++;
+
+        // 현재 텍스트를 재생하고, 재생이 끝나면 playNextChunk를 다시 호출
+        playAudio(textToPlay, playNextChunk);
+      };
+
+      // 3. 첫 번째 페이지 재생 시작
+      toast("전체 뉴스 듣기를 시작합니다.", { icon: "🎧" });
+      playNextChunk();
     } catch (error) {
       console.error("전체 뉴스 로드 오류:", error);
       toast.error("전체 뉴스를 불러오지 못했습니다.");
-      setIsMainAudioLoading(false);
+      stopAudio(); // 에러 발생 시에도 상태 초기화
     }
   };
 
   // 오디오 재생 공통 함수
-  const playAudio = async (fullText) => {
+  const playAudio = async (fullText, onEndedCallback) => {
+    // 텍스트가 비어있으면 바로 콜백 실행 (다음 텍스트로)
+    if (!fullText || fullText.trim().length === 0) {
+      if (onEndedCallback) onEndedCallback();
+      return;
+    }
 
     try {
       // Article.jsx와 동일하게 Vercel 서버 함수 호출
@@ -608,7 +664,11 @@ export default function MainPage() {
 
       const response = await fetch(API_URL, options);
       if (!response.ok) {
-        throw new Error(`API 요청 실패: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error("TTS API Error Body:", errorText);
+        throw new Error(
+          `API 요청 실패: ${response.status} ${response.statusText}`
+        );
       }
 
       // Article.jsx와 동일하게 오디오 디코딩 및 재생
@@ -629,34 +689,40 @@ export default function MainPage() {
       const newAudioPlayer = new Audio(audioUrl);
       setMainAudioPlayer(newAudioPlayer);
       setIsMainAudioPlaying(true);
+      setIsMainAudioLoading(false); // 로딩 완료, 재생 시작
 
       newAudioPlayer.play().catch((error) => {
         console.error("오디오 재생 오류:", error);
         toast.error("브라우저에서 오디오 재생에 실패했습니다.");
-        setIsMainAudioLoading(false);
+        stopAudio();
       });
 
       newAudioPlayer.onended = () => {
-        setMainAudioPlayer(null);
-        setIsMainAudioPlaying(false);
-        URL.revokeObjectURL(audioUrl);
-        setIsMainAudioLoading(false);
+        URL.revokeObjectURL(audioUrl); // 메모리 해제
+
+        // 콜백이 있고, 시퀀스 재생이 중단되지 않았다면 다음 텍스트 재생
+        if (onEndedCallback && isSequencePlayingRef.current) {
+          onEndedCallback();
+        }
+        // 콜백이 없거나(단일 재생) 시퀀스가 중단되었다면 상태 초기화
+        else {
+          setMainAudioPlayer(null);
+          setIsMainAudioPlaying(false);
+          isSequencePlayingRef.current = false;
+        }
       };
     } catch (error) {
       console.error("Speechify API 처리 오류:", error);
       toast.error("뉴스를 불러오지 못했습니다.");
-      setIsMainAudioLoading(false);
+      stopAudio();
     }
   };
 
   useEffect(() => {
     return () => {
-      if (mainAudioPlayer) {
-        mainAudioPlayer.pause();
-        setMainAudioPlayer(null);
-      }
+      stopAudio();
     };
-  }, [mainAudioPlayer]);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
@@ -675,11 +741,11 @@ export default function MainPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900">오늘의 뉴스</h2>
               <p className="text-xs text-gray-500 mt-0.5">
-                {new Date().toLocaleDateString('ko-KR', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  weekday: 'long'
+                {new Date().toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  weekday: "long",
                 })}
               </p>
             </div>
@@ -688,7 +754,9 @@ export default function MainPage() {
             <button
               onClick={handleSpeakCurrentPage}
               aria-label={
-                isMainAudioPlaying ? "음성 읽기 중지" : "현재 페이지 뉴스 듣기"
+                isMainAudioPlaying && !isSequencePlayingRef.current
+                  ? "음성 읽기 중지"
+                  : "현재 페이지 뉴스 듣기"
               }
               className={`cursor-pointer px-3 py-2 rounded-lg border transition-colors flex items-center gap-1.5 ${
                 isMainAudioPlaying || isMainAudioLoading
@@ -700,33 +768,45 @@ export default function MainPage() {
             >
               <img
                 src={
-                  isMainAudioPlaying || isMainAudioLoading
+                  (isMainAudioPlaying && !isSequencePlayingRef.current) ||
+                  (isMainAudioLoading && !isSequencePlayingRef.current)
                     ? VolumeFilledIcon
                     : VolumeIcon
                 }
                 alt="volume"
-                className={`w-4 h-4 cursor-pointer ${
-                  isMainAudioPlaying || isMainAudioLoading
-                    ? "brightness-0 saturate-100 opacity-80"
-                    : ""
-                }`}
+                className={`w-4 h-4 cursor-pointer`}
                 style={
-                  isMainAudioPlaying || isMainAudioLoading
-                    ? { filter: "invert(17%) sepia(72%) saturate(1593%) hue-rotate(236deg) brightness(94%) contrast(91%)" }
+                  (isMainAudioPlaying && !isSequencePlayingRef.current) ||
+                  (isMainAudioLoading && !isSequencePlayingRef.current)
+                    ? {
+                        filter:
+                          "invert(17%) sepia(72%) saturate(1593%) hue-rotate(236deg) brightness(94%) contrast(91%)",
+                      }
                     : {}
                 }
               />
-              <span className={`text-xs font-medium ${
-                isMainAudioPlaying || isMainAudioLoading
-                  ? "text-[#39235C]"
-                  : "text-gray-700"
-              }`}>{currentPage + 1}</span>
+              <span
+                className={`text-xs font-medium ${
+                  (isMainAudioPlaying && !isSequencePlayingRef.current) ||
+                  (isMainAudioLoading && !isSequencePlayingRef.current)
+                    ? "text-[#39235C]"
+                    : "text-gray-700"
+                }`}
+              >
+                {currentPage + 1}
+              </span>
             </button>
+
             <button
               onClick={handleSpeakAllPages}
-              aria-label="전체 페이지 뉴스 듣기"
+              aria-label={
+                isMainAudioPlaying && isSequencePlayingRef.current
+                  ? "음성 읽기 중지"
+                  : "전체 페이지 뉴스 듣기"
+              }
               className={`cursor-pointer px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
-                isMainAudioPlaying || isMainAudioLoading
+                (isMainAudioPlaying && isSequencePlayingRef.current) ||
+                (isMainAudioLoading && isSequencePlayingRef.current)
                   ? "bg-[#39235C] hover:bg-[#4a2d6e]"
                   : "bg-gradient-to-r from-[#39235C] to-[#6B4C93] hover:from-[#4a2d6e] hover:to-[#7c5da3]"
               }`}
@@ -735,7 +815,8 @@ export default function MainPage() {
             >
               <img
                 src={
-                  isMainAudioPlaying || isMainAudioLoading
+                  (isMainAudioPlaying && isSequencePlayingRef.current) ||
+                  (isMainAudioLoading && isSequencePlayingRef.current)
                     ? VolumeFilledIcon
                     : VolumeIcon
                 }
