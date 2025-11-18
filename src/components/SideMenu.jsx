@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-hot-toast";
+import { logout } from "../api/auth";
 
 export default function SideMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,13 +29,7 @@ export default function SideMenu() {
 
   // 로그아웃 처리 함수
   const handleLogout = () => {
-    // localStorage 정리
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("username");
-    localStorage.removeItem("nickname");
-    localStorage.removeItem("interests");
-    
-    toast.success("로그아웃 되었습니다.");
+    logout(); // 공통 로그아웃 함수 사용
     setIsMenuOpen(false);
     setIsLoggedIn(false);
     navigate("/login");

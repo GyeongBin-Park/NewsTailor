@@ -60,35 +60,34 @@ const login = async (username, password) => {
       }
       localStorage.setItem("username", username);
 
-      // 사용자 정보 가져오기
+      // 사용자 정보 가져오기 (GET /api/user/info)
       try {
-        const userInfoRes = await fetch(`${BACKEND}/api/member`, {
+        const userInfoRes = await fetch(`${BACKEND}/api/user/info`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${accessToken}`,
             "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "true",
-            "User-Agent": "NewsTailor"
           }
         });
 
         if (userInfoRes.ok) {
-          const userInfoContentType = userInfoRes.headers.get("content-type");
-          
-          if (userInfoContentType && userInfoContentType.includes("application/json")) {
-            const userInfo = await userInfoRes.json();
-            // nickname과 interests 저장
-            if (userInfo.nickname) {
-              localStorage.setItem("nickname", userInfo.nickname);
-            }
-            if (userInfo.interestIds) {
-              localStorage.setItem("interests", JSON.stringify(userInfo.interestIds));
-            }
-          } else {
-            console.warn("사용자 정보 API가 JSON을 반환하지 않았습니다.");
+          const userInfo = await userInfoRes.json();
+          // nickname 저장
+          if (userInfo.nickname) {
+            localStorage.setItem("nickname", userInfo.nickname);
+          }
+          // interests 저장 (배열 형태: ["정치", "경제", "IT/과학"])
+          if (userInfo.interests && Array.isArray(userInfo.interests)) {
+            localStorage.setItem("interests", JSON.stringify(userInfo.interests));
           }
         } else {
-          console.warn("사용자 정보 가져오기 실패:", userInfoRes.status);
+          if (userInfoRes.status === 401) {
+            console.warn("인증 토큰이 유효하지 않습니다.");
+          } else if (userInfoRes.status === 404) {
+            console.warn("사용자를 찾을 수 없습니다.");
+          } else {
+            console.warn("사용자 정보 가져오기 실패:", userInfoRes.status);
+          }
         }
       } catch (error) {
         console.error("사용자 정보 가져오기 실패:", error);

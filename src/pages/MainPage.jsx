@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { logout } from "../api/auth";
 import Article from "../components/Article";
 import Footer from "../components/Footer";
 import SideMenu from "../components/SideMenu";
@@ -59,11 +60,7 @@ export default function MainPage() {
 
   // 로그아웃 처리
   const handleLogout = useCallback(() => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("username");
-    localStorage.removeItem("nickname");
-    localStorage.removeItem("interests");
-    toast.success("로그아웃 되었습니다.");
+    logout(); // 공통 로그아웃 함수 사용
     navigate("/login");
   }, [navigate]);
 
@@ -586,26 +583,42 @@ export default function MainPage() {
       </header>
 
       {/* Section Title */}
-      <section className="flex items-center justify-between px-4 mt-4 mb-2">
-        <h2 className="text-xl font-bold">Today's News Paper</h2>
-        <button
-          onClick={handleSpeak}
-          aria-label={
-            isMainAudioPlaying ? "음성 읽기 중지" : "뉴스 제목 전체 듣기"
-          }
-          className="cursor-pointer"
-          disabled={isMainAudioLoading}
-        >
-          <img
-            src={
-              isMainAudioPlaying || isMainAudioLoading
-                ? VolumeFilledIcon
-                : VolumeIcon
+      <section className="px-4 mt-6 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-8 bg-gradient-to-b from-[#39235C] to-[#6B4C93] rounded-full"></div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">오늘의 뉴스</h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {new Date().toLocaleDateString('ko-KR', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric',
+                  weekday: 'long'
+                })}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleSpeak}
+            aria-label={
+              isMainAudioPlaying ? "음성 읽기 중지" : "뉴스 제목 전체 듣기"
             }
-            alt="volume"
-            className="w-6 h-6 cursor-pointer"
-          />
-        </button>
+            className="cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors"
+            disabled={isMainAudioLoading}
+          >
+            <img
+              src={
+                isMainAudioPlaying || isMainAudioLoading
+                  ? VolumeFilledIcon
+                  : VolumeIcon
+              }
+              alt="volume"
+              className="w-6 h-6 cursor-pointer"
+            />
+          </button>
+        </div>
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
       </section>
 
       {/* Articles */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { logout } from "../api/auth";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BackIcon from "../icons/back.svg";
@@ -111,11 +112,7 @@ export default function MyPage() {
 
   // 로그아웃 처리 함수
   const handleLogout = () => {
-    // 로컬 스토리지 정리
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("username");
-    localStorage.removeItem("nickname");
-    toast.success("로그아웃 되었습니다.");
+    logout(); // 공통 로그아웃 함수 사용
     navigate("/login");
   };
 
