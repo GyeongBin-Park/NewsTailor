@@ -690,7 +690,11 @@ export default function MainPage() {
               aria-label={
                 isMainAudioPlaying ? "음성 읽기 중지" : "현재 페이지 뉴스 듣기"
               }
-              className="cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors flex items-center gap-1.5"
+              className={`cursor-pointer px-3 py-2 rounded-lg border transition-colors flex items-center gap-1.5 ${
+                isMainAudioPlaying || isMainAudioLoading
+                  ? "border-[#39235C] bg-[#39235C]/10"
+                  : "border-gray-300 hover:border-[#39235C] hover:bg-gray-50"
+              }`}
               disabled={isMainAudioLoading}
               title="현재 페이지 뉴스 듣기"
             >
@@ -701,14 +705,31 @@ export default function MainPage() {
                     : VolumeIcon
                 }
                 alt="volume"
-                className="w-5 h-5 cursor-pointer"
+                className={`w-4 h-4 cursor-pointer ${
+                  isMainAudioPlaying || isMainAudioLoading
+                    ? "brightness-0 saturate-100 opacity-80"
+                    : ""
+                }`}
+                style={
+                  isMainAudioPlaying || isMainAudioLoading
+                    ? { filter: "invert(17%) sepia(72%) saturate(1593%) hue-rotate(236deg) brightness(94%) contrast(91%)" }
+                    : {}
+                }
               />
-              <span className="text-xs text-gray-600 hidden sm:inline">현재</span>
+              <span className={`text-xs font-medium ${
+                isMainAudioPlaying || isMainAudioLoading
+                  ? "text-[#39235C]"
+                  : "text-gray-700"
+              }`}>{currentPage + 1}</span>
             </button>
             <button
               onClick={handleSpeakAllPages}
               aria-label="전체 페이지 뉴스 듣기"
-              className="cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors flex items-center gap-1.5"
+              className={`cursor-pointer px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                isMainAudioPlaying || isMainAudioLoading
+                  ? "bg-[#39235C] hover:bg-[#4a2d6e]"
+                  : "bg-gradient-to-r from-[#39235C] to-[#6B4C93] hover:from-[#4a2d6e] hover:to-[#7c5da3]"
+              }`}
               disabled={isMainAudioLoading}
               title="전체 페이지 뉴스 듣기"
             >
@@ -719,9 +740,9 @@ export default function MainPage() {
                     : VolumeIcon
                 }
                 alt="volume all"
-                className="w-5 h-5 cursor-pointer"
+                className="w-4 h-4 cursor-pointer brightness-0 invert"
               />
-              <span className="text-xs text-gray-600 hidden sm:inline">전체</span>
+              <span className="text-xs font-medium text-white">전체</span>
             </button>
           </div>
         </div>
