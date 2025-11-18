@@ -487,7 +487,8 @@ export default function MainPage() {
     }
   };
 
-  const handleSpeak = async () => {
+  // 현재 페이지만 읽기
+  const handleSpeakCurrentPage = async () => {
     // 이미 재생 중이면 정지
     if (mainAudioPlayer) {
       mainAudioPlayer.pause();
@@ -504,24 +505,107 @@ export default function MainPage() {
 
     setIsMainAudioLoading(true);
 
-    // 모든 기사의 제목을 하나의 긴 문자열로 합칩니다.
-    const allTitles = articles.map((article) => article.title).join(". ");
+    // 현재 페이지의 뉴스만 읽기
+    const allNews = articles.map((article) => {
+      const title = article.title || "";
+      const summary = article.summary || article.content || "";
+      return `${title}. ${summary}`;
+    }).join(". ");
 
-    // Article.jsx와 동일하게 Vercel 서버 함수 호출
-    const API_URL = "/api/get-speech";
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        input: allTitles,
-        voice_id: selectedVoiceId,
-        model: "simba-multilingual",
-      }),
-    };
+    const fullText = allNews ? `오늘의 뉴스. ${allNews}` : "오늘의 뉴스가 없습니다.";
+
+    await playAudio(fullText);
+  };
+
+  // 전체 페이지 읽기
+  const handleSpeakAllPages = async () => {
+    // 이미 재생 중이면 정지
+    if (mainAudioPlayer) {
+      mainAudioPlayer.pause();
+      setMainAudioPlayer(null);
+      setIsMainAudioPlaying(false);
+      return;
+    }
+
+    // 선택한 목소리 ID가 있는지 확인
+    if (!selectedVoiceId) {
+      toast.error("목소리가 선택되지 않았습니다.");
+      return;
+    }
+
+    setIsMainAudioLoading(true);
 
     try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast.error("로그인이 필요합니다.");
+        setIsMainAudioLoading(false);
+        return;
+      }
+
+      // 모든 페이지(0, 1, 2, 3)의 뉴스를 가져오기
+      const allPagesArticles = [];
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+      const separator = BACKEND_URL.endsWith("/") ? "" : "/";
+
+      for (let page = 0; page < 4; page++) {
+        try {
+          const response = await fetch(
+            `${BACKEND_URL}${separator}api/v1/summary-news?page=${page}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const newsArray = Array.isArray(data) ? data : data.content || [];
+            allPagesArticles.push(...newsArray);
+          }
+        } catch (error) {
+          console.error(`페이지 ${page} 로드 실패:`, error);
+        }
+      }
+
+      // 모든 뉴스를 합치기
+      const allNews = allPagesArticles.map((article) => {
+        const title = article.title || "";
+        const summary = article.summary || article.content || "";
+        return `${title}. ${summary}`;
+      }).join(". ");
+
+      const fullText = allNews ? `오늘의 뉴스. ${allNews}` : "오늘의 뉴스가 없습니다.";
+
+      await playAudio(fullText);
+    } catch (error) {
+      console.error("전체 뉴스 로드 오류:", error);
+      toast.error("전체 뉴스를 불러오지 못했습니다.");
+      setIsMainAudioLoading(false);
+    }
+  };
+
+  // 오디오 재생 공통 함수
+  const playAudio = async (fullText) => {
+
+    try {
+      // Article.jsx와 동일하게 Vercel 서버 함수 호출
+      const API_URL = "/api/get-speech";
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input: fullText,
+          voice_id: selectedVoiceId,
+          model: "simba-multilingual",
+        }),
+      };
+
       const response = await fetch(API_URL, options);
       if (!response.ok) {
         throw new Error(`API 요청 실패: ${response.statusText}`);
@@ -549,17 +633,18 @@ export default function MainPage() {
       newAudioPlayer.play().catch((error) => {
         console.error("오디오 재생 오류:", error);
         toast.error("브라우저에서 오디오 재생에 실패했습니다.");
+        setIsMainAudioLoading(false);
       });
 
       newAudioPlayer.onended = () => {
         setMainAudioPlayer(null);
         setIsMainAudioPlaying(false);
         URL.revokeObjectURL(audioUrl);
+        setIsMainAudioLoading(false);
       };
     } catch (error) {
       console.error("Speechify API 처리 오류:", error);
-      toast.error("전체 제목을 불러오지 못했습니다.");
-    } finally {
+      toast.error("뉴스를 불러오지 못했습니다.");
       setIsMainAudioLoading(false);
     }
   };
@@ -599,24 +684,46 @@ export default function MainPage() {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleSpeak}
-            aria-label={
-              isMainAudioPlaying ? "음성 읽기 중지" : "뉴스 제목 전체 듣기"
-            }
-            className="cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors"
-            disabled={isMainAudioLoading}
-          >
-            <img
-              src={
-                isMainAudioPlaying || isMainAudioLoading
-                  ? VolumeFilledIcon
-                  : VolumeIcon
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSpeakCurrentPage}
+              aria-label={
+                isMainAudioPlaying ? "음성 읽기 중지" : "현재 페이지 뉴스 듣기"
               }
-              alt="volume"
-              className="w-6 h-6 cursor-pointer"
-            />
-          </button>
+              className="cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors flex items-center gap-1.5"
+              disabled={isMainAudioLoading}
+              title="현재 페이지 뉴스 듣기"
+            >
+              <img
+                src={
+                  isMainAudioPlaying || isMainAudioLoading
+                    ? VolumeFilledIcon
+                    : VolumeIcon
+                }
+                alt="volume"
+                className="w-5 h-5 cursor-pointer"
+              />
+              <span className="text-xs text-gray-600 hidden sm:inline">현재</span>
+            </button>
+            <button
+              onClick={handleSpeakAllPages}
+              aria-label="전체 페이지 뉴스 듣기"
+              className="cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors flex items-center gap-1.5"
+              disabled={isMainAudioLoading}
+              title="전체 페이지 뉴스 듣기"
+            >
+              <img
+                src={
+                  isMainAudioPlaying || isMainAudioLoading
+                    ? VolumeFilledIcon
+                    : VolumeIcon
+                }
+                alt="volume all"
+                className="w-5 h-5 cursor-pointer"
+              />
+              <span className="text-xs text-gray-600 hidden sm:inline">전체</span>
+            </button>
+          </div>
         </div>
         <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
       </section>
