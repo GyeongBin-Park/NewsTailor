@@ -16,6 +16,7 @@ const Step1 = ({onNext}) => {
     const [idValid, setIdValid] = useState(false);
     const [checking, setChecking] = useState(false);
     const [idError, setIdError] = useState("");
+    const [idSuccess, setIdSuccess] = useState("");
 
     const nameValue = watch("name");
     const pwValue = watch("password");
@@ -35,6 +36,7 @@ const Step1 = ({onNext}) => {
         try {
             setChecking(true);
             setIdError("");
+            setIdSuccess("");
 
             if (!BACKEND) {
                 setIdError("백엔드 서버 주소가 설정되지 않았습니다.");
@@ -70,10 +72,12 @@ const Step1 = ({onNext}) => {
                     const result = await res.json();
                     if (result.available) {
                       setIdValid(true);
-                      alert(result.message);
+                      setIdSuccess("사용 가능한 아이디입니다.");
+                      setIdError("");
                     } else {
                       setIdValid(false);
-                      setIdError(result.message);
+                      setIdError(result.message || "이미 사용 중인 아이디입니다.");
+                      setIdSuccess("");
                     }
                 } else {
                     // JSON이 아닌 응답인 경우 (ngrok 경고 페이지 등)
@@ -84,9 +88,11 @@ const Step1 = ({onNext}) => {
                     if (text.includes("ngrok") || text.includes("You are about to visit") || text.includes("ERR_NGROK")) {
                         setIdValid(false);
                         setIdError("ngrok 경고 페이지가 표시되었습니다. 브라우저에서 서버 URL을 직접 방문하여 'Visit Site' 버튼을 클릭한 후 다시 시도해주세요.");
+                        setIdSuccess("");
                     } else {
                         setIdValid(false);
                         setIdError("서버 응답 형식 오류");
+                        setIdSuccess("");
                     }
                 }
             } else {
@@ -94,6 +100,7 @@ const Step1 = ({onNext}) => {
                 console.warn("API error:", text);
                 setIdValid(false);
                 setIdError(`예상치 못한 오류 (code: ${res.status})`);
+                setIdSuccess("");
             }
       
         } catch (err) {
@@ -101,6 +108,7 @@ const Step1 = ({onNext}) => {
           
           console.error("중복 확인 오류", err);
           setIdValid(false);
+          setIdSuccess("");
           
           // 타임아웃 에러 확인 (AbortError는 타임아웃이나 수동 중단 시 발생)
           if (err.name === 'AbortError' || 
@@ -161,6 +169,9 @@ const Step1 = ({onNext}) => {
                     <div className="h-[20px]">
                         {idError && (
                             <p className="text-[#FF2655] text-sm ml-[5px]">{idError}</p>
+                        )}
+                        {idSuccess && (
+                            <p className="text-[#10B981] text-sm ml-[5px]">{idSuccess}</p>
                         )}
                     </div>
                 </div>
