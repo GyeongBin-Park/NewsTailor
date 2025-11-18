@@ -59,13 +59,12 @@ const Step2 = ({onNext}) => {
         <div className="w-screen">
             <StepIndicator currentStep={1}/>
             <form onSubmit={handleSubmit(onSubmit)} className="w-[358px] mx-auto">
-                <div className="font-medium font-display text-[28px] py-[10px] ml-[19px]">
-                    <p>관심 분야를</p>
-                    <p>선택해주세요 (최대 3개)</p>
+                <div className="font-medium font-display text-[22px] py-[10px] ml-[19px]">
+                    <p>관심 분야를 선택해주세요 (3개)</p>
                 </div>
 
                 <div className="mt-[10px] justify-items-center">
-                    <div className="grid grid-cols-2 gap-x-0 gap-y-[7px] justify-items-center w-[326px]">
+                    <div className="grid grid-cols-2 gap-x-0 gap-y-[7px] justify-items-center w-[326px] mx-auto">
                         {categories.map((category) => {
                             const isSelected = selectedCategories.includes(category.id);
                             return (
@@ -93,12 +92,12 @@ const Step2 = ({onNext}) => {
                     </div>
                 </div>
 
-                <div className="absolute bottom-[34px] left-1/2 -translate-x-1/2">
+                <div className="absolute bottom-[34px]">
                     <button 
                         type="submit"
-                        disabled={selectedCategories.length === 0}
+                        disabled={selectedCategories.length !== 3}
                         className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg
-                        ${selectedCategories.length === 0 ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
+                        ${selectedCategories.length !== 3 ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
                     >
                         계속하기
                     </button>
