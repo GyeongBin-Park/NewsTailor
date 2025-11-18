@@ -14,7 +14,7 @@ export default function Article({
   selectedVoiceId,
 }) {
   // API 응답에서 summary 필드를 content로 사용 (호환성 유지)
-  const title = article.title;
+  const title = article.title || "";
   const content = article.summary || article.content || "";
   const sectionName = article.sectionName || "";
   const url = article.url || "";
@@ -22,10 +22,15 @@ export default function Article({
   const [audioPlayer, setAudioPlayer] = useState(null);
 
   const handleCopy = () => {
+    const textToCopy = `${title}\n\n${content}`;
+
     navigator.clipboard
-      .writeText(content)
-      .then(() => toast.success("복사되었습니다!"))
-      .catch((err) => toast.error("복사에 실패했어요."));
+      .writeText(textToCopy)
+      .then(() => toast.success("제목과 내용이 복사되었습니다!"))
+      .catch((err) => {
+        console.error("복사 오류:", err);
+        toast.error("복사에 실패했어요.");
+      });
   };
 
   const handleSpeak = async () => {
