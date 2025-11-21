@@ -33,7 +33,7 @@ export default function MainPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userInfo, setUserInfo] = useState({ username: "", nickname: "" });
-  const [currentPage, setCurrentPage] = useState(0); // 페이징 상태 추가
+  const [currentPage, setCurrentPage] = useState(0);
 
   // 음성 관련 상태 추가
   const [isMainAudioPlaying, setIsMainAudioPlaying] = useState(false); // "전체 듣기" 스피커의 로딩 상태
@@ -47,7 +47,7 @@ export default function MainPage() {
   );
   const [bookmarkedUrlSet, setBookmarkedUrlSet] = useState(new Set());
 
-  // 로그인 상태 확인 (리다이렉트 하지 않음)
+  // 로그인 상태 확인
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const username = localStorage.getItem("username");
@@ -93,7 +93,7 @@ export default function MainPage() {
 
       const urls = normalized
         .map((bookmark) => {
-          // 'summaryNews' 객체가 중첩되어 있거나, 객체 자체에 url이 있을 수 있습니다.
+          // 'summaryNews' 객체가 중첩되어 있거나, 객체 자체에 url이 있음
           const item = bookmark.summaryNews || bookmark;
           return item.url;
         })
@@ -126,12 +126,8 @@ export default function MainPage() {
         const separator = BACKEND_URL.endsWith("/") ? "" : "/";
 
         // 백엔드가 파라미터 이름을 인식하지 못하는 경우를 대비해
-        // 명시적으로 query string 구성 (이미 올바름)
+        // 명시적으로 query string 구성
         const apiUrl = `${BACKEND_URL}${separator}api/v1/summary-news?page=${page}`;
-
-        // 참고: 이 오류는 백엔드 Spring Boot 설정 문제입니다.
-        // 백엔드 코드에서 @RequestParam(value = "page")를 명시하거나
-        // 컴파일러에 -parameters 플래그를 추가해야 합니다.
 
         console.log("🔍 요약뉴스 요청 시작:");
         console.log("  - URL:", apiUrl);
@@ -243,7 +239,7 @@ export default function MainPage() {
           throw new Error("뉴스 목록을 불러오는 데 실패했습니다.");
         }
 
-        // API 응답은 배열을 직접 반환 (명세에 따르면)
+        // API 응답: 배열 직접 반환
         const data = await response.json();
 
         console.log("✅ 응답 데이터:", data);
@@ -269,18 +265,18 @@ export default function MainPage() {
 
         const articlesWithBookmark = newsArray.map((article) => {
           const isBookmarked =
-            article.url && effectiveBookmarkIds.has(article.url); // 👈 URL로 비교
-          // React의 key prop을 위한 고유 ID를 생성합니다.
-          // 1. article.id가 있으면 사용
-          // 2. 없으면 뉴스 ID(280번대)라도 추출
-          // 3. 그것도 없으면 URL을 사용
+            article.url && effectiveBookmarkIds.has(article.url);
+          // React의 key prop을 위한 고유 ID 생성
+          // article.id가 있으면 사용
+          // 없으면 뉴스 ID(280번대)라도 추출
+          // 그것도 없으면 URL 사용
 
           const uniqueKeyId =
             article.id || extractArticleId(article) || article.url;
 
           return {
             ...article,
-            id: uniqueKeyId, // 👈 덮어쓰기 (key를 위해 'id' 필드 보장)
+            id: uniqueKeyId,
             isBookmarked,
           };
         });
@@ -337,10 +333,10 @@ export default function MainPage() {
 
     const isBookmarked = articleInState.isBookmarked;
     const method = isBookmarked ? "DELETE" : "POST";
-    let endpoint = ""; // ▼▼▼▼▼ [ 여기가 핵심 수정 사항입니다 ] ▼▼▼▼▼
+    let endpoint = "";
 
     if (isBookmarked) {
-      // 1. (삭제) 새 API 명세: URL 기반으로 삭제
+      // 새 API 명세: URL 기반으로 삭제
       const articleUrl = articleToToggle.url;
       if (!articleUrl) {
         toast.error("북마크를 삭제할 수 없습니다: 뉴스 URL이 없습니다.");
@@ -350,7 +346,7 @@ export default function MainPage() {
       const encodedUrl = encodeURIComponent(articleUrl);
       endpoint = `${BACKEND_URL}/api/bookmark?url=${encodedUrl}`;
     } else {
-      // 2. (추가) 기존 API 명세: ID 기반으로 추가
+      // 기존 API 명세: ID 기반으로 추가
       const summaryNewsCacheId = extractArticleId(articleToToggle);
 
       if (!summaryNewsCacheId) {
@@ -360,7 +356,6 @@ export default function MainPage() {
       }
       endpoint = `${BACKEND_URL}/api/bookmark?summaryNewsCacheId=${summaryNewsCacheId}`;
     }
-    // ▲▲▲▲▲ [ 수정 끝 ] ▲▲▲▲▲
 
     try {
       const response = await fetch(endpoint, {
@@ -391,7 +386,7 @@ export default function MainPage() {
             ? { ...article, isBookmarked: !isBookmarked }
             : article;
         })
-      ); // (기존 loadBookmarks() 호출 로직 대신, 상태를 즉시 업데이트)
+      );
 
       // bookmarkedUrlSet 상태 업데이트
       setBookmarkedUrlSet((prevSet) => {
@@ -414,7 +409,6 @@ export default function MainPage() {
         isBookmarked ? "북마크가 삭제되었습니다." : "북마크에 추가되었습니다."
       );
     } catch (err) {
-      // (기존 catch 블록은 동일하게 유지)
       const message = err.message || "북마크 처리에 실패했습니다.";
       const alreadyBookmarked =
         !isBookmarked && /이미\s*북마크|already\s*bookmarked/i.test(message);
@@ -556,14 +550,14 @@ export default function MainPage() {
         return;
       }
 
-      // 모든 페이지(0, 1, 2, 3)의 뉴스를 가져오기
+      // 모든 페이지(0, 1, 2, 3)의 뉴스 가져오기
       const allPagesArticles = [];
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const separator = BACKEND_URL.endsWith("/") ? "" : "/";
 
-      const chunkedTexts = []; // 페이지별 텍스트를 저장할 배열
+      const chunkedTexts = []; // 페이지별 텍스트 저장할 배열
 
-      // 1. 모든 페이지(0-3)의 텍스트를 가져와 배열에 저장
+      // 모든 페이지(0-3)의 텍스트를 가져와 배열에 저장
       for (let page = 0; page < 4; page++) {
         try {
           const response = await fetch(
@@ -605,7 +599,7 @@ export default function MainPage() {
         return;
       }
 
-      // 2. 순차 재생 함수 정의
+      // 순차 재생 함수 정의
       let currentIndex = 0;
 
       const playNextChunk = () => {
@@ -629,7 +623,7 @@ export default function MainPage() {
         playAudio(textToPlay, playNextChunk);
       };
 
-      // 3. 첫 번째 페이지 재생 시작
+      // 첫 번째 페이지 재생 시작
       toast("전체 뉴스 듣기를 시작합니다.", { icon: "🎧" });
       playNextChunk();
     } catch (error) {
@@ -700,11 +694,11 @@ export default function MainPage() {
       newAudioPlayer.onended = () => {
         URL.revokeObjectURL(audioUrl); // 메모리 해제
 
-        // 콜백이 있고, 시퀀스 재생이 중단되지 않았다면 다음 텍스트 재생
+        // 다음 텍스트 재생
         if (onEndedCallback && isSequencePlayingRef.current) {
           onEndedCallback();
         }
-        // 콜백이 없거나(단일 재생) 시퀀스가 중단되었다면 상태 초기화
+        // 상태 초기화
         else {
           setMainAudioPlayer(null);
           setIsMainAudioPlaying(false);

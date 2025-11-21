@@ -1,7 +1,7 @@
 export default async function handler(request, response) {
   const API_KEY = process.env.SPEECHIFY_API_KEY;
 
-  // 우리가 알아낸 Speechify의 '목소리 목록' 공식 주소
+  // Speechify의 '목소리 목록' 공식 주소
   const API_URL = "https://api.sws.speechify.com/v1/voices";
 
   if (!API_KEY) {
@@ -13,7 +13,7 @@ export default async function handler(request, response) {
 
   try {
     const apiResponse = await fetch(API_URL, {
-      method: "GET", // 목록은 GET 방식
+      method: "GET", // 목록 GET 방식
       headers: {
         Authorization: `Bearer ${API_KEY}`,
       },

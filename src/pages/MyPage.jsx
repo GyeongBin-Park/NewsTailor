@@ -102,7 +102,7 @@ export default function MyPage() {
     fetchVoices();
   }, []);
 
-  // 목소리 변경 시 localStorage에 저장하는 핸들러 함수입니다.
+  // 목소리 변경 시 localStorage에 저장하는 핸들러 함수
   const handleVoiceChange = (e) => {
     const newVoiceId = e.target.value;
     setSelectedVoiceId(newVoiceId);
@@ -118,7 +118,6 @@ export default function MyPage() {
 
   // 회원 탈퇴 처리 함수
   const handleDeleteAccount = () => {
-    // TODO: 실제 회원 탈퇴 API 호출 로직 구현
     if (window.confirm("정말로 회원 탈퇴를 하시겠습니까?")) {
       // 로컬 스토리지 정리
       localStorage.removeItem("accessToken");

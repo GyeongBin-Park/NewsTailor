@@ -44,14 +44,12 @@ export default function Article({
       return;
     }
     setIsLoading(true);
-    // const API_KEY = import.meta.env.VITE_SPEECHIFY_API_KEY;
     const API_URL = "/api/get-speech";
 
     const options = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify({
         input: `${title}. ${content}`,
@@ -104,14 +102,14 @@ export default function Article({
 
   // 페이지 이동 시 (컴포넌트 unmount 시) "개별 듣기" 오디오 정지
   useEffect(() => {
-    // 이 함수는 audioPlayer가 변경되거나 컴포넌트가 사라질 때 실행됩니다.
+    // 이 함수는 audioPlayer가 변경되거나 컴포넌트가 사라질 때 실행됨.
     return () => {
       if (audioPlayer) {
         audioPlayer.pause(); // 오디오 정지
         setAudioPlayer(null); // 상태 초기화
       }
     };
-  }, [audioPlayer]); // audioPlayer 객체를 감시
+  }, [audioPlayer]); // audioPlayer 객체 감시
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
