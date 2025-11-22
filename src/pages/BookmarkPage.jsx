@@ -73,14 +73,14 @@ export default function BookmarkPage() {
       toast.error("로그인이 필요합니다.");
       navigate("/login");
       return;
-    } // 새 API 명세: URL 기반으로 삭제
+    } // URL 기반으로 삭제
 
     const articleUrl = articleToDelete.url;
     if (!articleUrl) {
       toast.error("북마크를 삭제할 수 없습니다: 뉴스 URL이 없습니다.");
       console.error("뉴스 데이터에 URL이 없습니다:", articleToDelete);
       return;
-    } // API 명세에 따라 URL 인코딩
+    } // URL 인코딩
 
     const encodedUrl = encodeURIComponent(articleUrl);
     const endpoint = `${BACKEND_URL}/api/bookmark?url=${encodedUrl}`;
@@ -108,7 +108,6 @@ export default function BookmarkPage() {
       }
 
       if (response.status === 404 || response.status === 400) {
-        // 👈 400 에러도 같이 처리
         const errorData = await response.json().catch(() => ({}));
         const message = errorData.message || "북마크를 찾을 수 없습니다.";
         toast.error(message);
@@ -145,7 +144,7 @@ export default function BookmarkPage() {
           )
         );
       } else {
-        // ID를 못 찾으면, 그냥 목록을 새로고침
+        // ID를 못 찾으면, 그냥 목록 새로고침
         fetchBookmarks();
       }
       toast.success("북마크가 삭제되었습니다.");

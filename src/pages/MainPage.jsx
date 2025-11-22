@@ -34,8 +34,6 @@ export default function MainPage() {
   const [error, setError] = useState(null);
   const [userInfo, setUserInfo] = useState({ username: "", nickname: "" });
   const [currentPage, setCurrentPage] = useState(0);
-
-  // 음성 관련 상태 추가
   const [isMainAudioPlaying, setIsMainAudioPlaying] = useState(false); // "전체 듣기" 스피커의 로딩 상태
   const [isMainAudioLoading, setIsMainAudioLoading] = useState(false);
   // "전체 듣기" 오디오 플레이어 객체

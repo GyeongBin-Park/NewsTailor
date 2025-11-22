@@ -7,7 +7,7 @@ import BackIcon from "../icons/back.svg";
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
-  
+
   // 로그인 상태 확인
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -23,7 +23,7 @@ export default function ChangePasswordPage() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const username = localStorage.getItem("username");
-    
+
     if (!token || !username) {
       toast.error("로그인이 필요합니다.");
       navigate("/login");
@@ -40,8 +40,9 @@ export default function ChangePasswordPage() {
       return;
     }
 
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
-    
+    const passwordRegex =
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+
     if (!passwordRegex.test(newPassword)) {
       setPasswordError("영문, 숫자, 특수문자를 포함한 8자 이상이어야 합니다.");
     } else {
@@ -64,7 +65,7 @@ export default function ChangePasswordPage() {
   }, [newPassword, confirmPassword]);
 
   // 저장 버튼 활성화 여부
-  const isValid = 
+  const isValid =
     currentPassword.length > 0 &&
     newPassword.length > 0 &&
     confirmPassword.length > 0 &&
@@ -80,7 +81,6 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: 실제 API 호출
       const BACKEND = import.meta.env.VITE_BACKEND_URL;
       const token = localStorage.getItem("accessToken");
 
@@ -88,12 +88,12 @@ export default function ChangePasswordPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           currentPassword,
-          newPassword
-        })
+          newPassword,
+        }),
       });
 
       if (response.ok) {
@@ -145,8 +145,7 @@ export default function ChangePasswordPage() {
         {/* 새 비밀번호 입력 */}
         <section className="bg-white rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-xl">🔑</span>
-            새 비밀번호
+            <span className="text-xl">🔑</span>새 비밀번호
           </h3>
           <div className="space-y-4">
             <div>
@@ -189,17 +188,20 @@ export default function ChangePasswordPage() {
       </main>
 
       {/* 변경 버튼 - 고정 위치 */}
-      <div className="fixed bottom-[72px] left-0 right-0 px-4 pb-4" style={{ backgroundColor: '#f9fafb' }}>
+      <div
+        className="fixed bottom-[72px] left-0 right-0 px-4 pb-4"
+        style={{ backgroundColor: "#f9fafb" }}
+      >
         <button
           onClick={handleChangePassword}
           disabled={!isValid || isSubmitting}
           className={`w-full py-4 rounded-xl font-semibold text-white transition-all ${
             isValid && !isSubmitting
-              ? 'bg-[#39235C] hover:bg-[#2d1a47] active:bg-[#401E63]'
-              : 'bg-gray-300 cursor-not-allowed'
+              ? "bg-[#39235C] hover:bg-[#2d1a47] active:bg-[#401E63]"
+              : "bg-gray-300 cursor-not-allowed"
           }`}
         >
-          {isSubmitting ? '변경 중...' : '비밀번호 변경'}
+          {isSubmitting ? "변경 중..." : "비밀번호 변경"}
         </button>
       </div>
 
@@ -207,4 +209,3 @@ export default function ChangePasswordPage() {
     </div>
   );
 }
-
