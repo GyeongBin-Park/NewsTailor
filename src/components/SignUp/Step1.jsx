@@ -184,17 +184,38 @@ const Step1 = ({onNext}) => {
                         autoComplete="off"
                         {...register("password", {
                             required: "비밀번호를 입력해주세요.",
-                            minLength: {
-                                value: 8,
-                                message: "비밀번호는 8자 이상이어야 합니다.",
-                            },
-                            maxLength: {
-                                value: 20,
-                                message: "비밀번호는 20자 이하여야 합니다.",
-                            },
-                            pattern: {
-                                value: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~])[A-Za-z\d!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]{8,20}$/,
-                                message: "영문, 숫자, 특수문자를 각 1개 이상 포함해주세요.",
+                            validate: (value) => {
+                                if (!value) return "비밀번호를 입력해주세요.";
+                                
+                                // 길이 체크
+                                if (value.length < 8) {
+                                    const missing = [];
+                                    if (!/[0-9]/.test(value)) missing.push("숫자");
+                                    if (!/[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]/.test(value)) missing.push("특수문자");
+                                    if (missing.length > 0) {
+                                        return `비밀번호는 8자 이상, ${missing.join("와 ")}를 각 1개 이상 포함해주세요.`;
+                                    }
+                                    return "비밀번호는 8자 이상이어야 합니다.";
+                                }
+                                if (value.length > 20) {
+                                    return "비밀번호는 20자 이하여야 합니다.";
+                                }
+                                
+                                // 문자 종류 체크
+                                const missing = [];
+                                if (!/[A-Za-z]/.test(value)) missing.push("영문");
+                                if (!/[0-9]/.test(value)) missing.push("숫자");
+                                if (!/[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]/.test(value)) missing.push("특수문자");
+                                
+                                if (missing.length > 0) {
+                                    if (missing.length === 1) {
+                                        return `${missing[0]}를 1개 이상 포함해주세요.`;
+                                    } else {
+                                        return `${missing.slice(0, -1).join(", ")}와 ${missing[missing.length - 1]}를 각 1개 이상 포함해주세요.`;
+                                    }
+                                }
+                                
+                                return true;
                             }
                         })} 
                         className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6] caret-[#39235C]"
