@@ -183,14 +183,18 @@ const Step1 = ({onNext}) => {
                         placeholder="비밀번호를 입력해주세요" 
                         autoComplete="off"
                         {...register("password", {
-                            required:true,
+                            required: "비밀번호를 입력해주세요.",
                             minLength: {
                                 value: 8,
-                                message: "최소 8자 이상으로 입력해주세요.",
+                                message: "비밀번호는 8자 이상이어야 합니다.",
+                            },
+                            maxLength: {
+                                value: 20,
+                                message: "비밀번호는 20자 이하여야 합니다.",
                             },
                             pattern: {
-                                value: /^(?=.*[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]).{6,}$/,
-                                message: "특수 문자를 1개 이상 포함해서 입력해주세요.",
+                                value: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~])[A-Za-z\d!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]{8,20}$/,
+                                message: "영문, 숫자, 특수문자를 각 1개 이상 포함해주세요.",
                             }
                         })} 
                         className="w-[358px] h-[51px] py-[16px] px-[15px] border rounded-md border-[#E6E6E6] caret-[#39235C]"
