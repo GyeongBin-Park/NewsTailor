@@ -63,7 +63,7 @@ const Step2 = ({onNext}) => {
                     <p>관심 분야를 선택해주세요 (3개)</p>
                 </div>
 
-                <div className="mt-[10px] justify-items-center">
+                <div className="mt-[10px] justify-items-center pb-[20px]">
                     <div className="grid grid-cols-2 gap-x-0 gap-y-[7px] justify-items-center w-[326px] mx-auto">
                         {categories.map((category) => {
                             const isSelected = selectedCategories.includes(category.id);
@@ -91,18 +91,19 @@ const Step2 = ({onNext}) => {
                         })}
                     </div>
                 </div>
-
-                <div className="absolute bottom-[34px]">
-                    <button 
-                        type="submit"
-                        disabled={selectedCategories.length !== 3}
-                        className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg
-                        ${selectedCategories.length !== 3 ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
-                    >
-                        계속하기
-                    </button>
-                </div>
             </form>
+
+            <div className="fixed bottom-[34px] left-1/2 -translate-x-1/2 w-[358px]">
+                <button 
+                    type="button"
+                    onClick={handleSubmit(onSubmit)}
+                    disabled={selectedCategories.length !== 3}
+                    className={`border border-box border-none w-full h-[56px] rounded-md gap-[10px] text-lg
+                    ${selectedCategories.length !== 3 ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
+                >
+                    계속하기
+                </button>
+            </div>
         </div>
     )
 

@@ -104,10 +104,20 @@ const Step = () => {
         <div>
             <Header text={headerText} left_img={currentImg} onClick={currentFuntion} />
 
-            {step === 1 && <Step1 onNext={updateFromData} />}
-            {step === 2 && <Step2 onNext={updateFromData} />}
-            {step === 3 && <Step3 onNext={updateFromData} />}
-            {step === 4 && <Step4 data={formData}/>}
+            {step === 2 ? (
+                <div className="h-[calc(100vh-60px-95px)] overflow-y-auto">
+                    <Step2 onNext={updateFromData} />
+                </div>
+            ) : step === 1 ? (
+                <div className="h-[calc(100vh-60px-95px)] overflow-y-auto">
+                    <Step1 onNext={updateFromData} />
+                </div>
+            ) : (
+                <>
+                    {step === 3 && <Step3 onNext={updateFromData} />}
+                    {step === 4 && <Step4 data={formData}/>}
+                </>
+            )}
         </div>
     )
 }

@@ -139,7 +139,7 @@ const Step1 = ({onNext}) => {
     return (
         <div className="w-screen">
             <StepIndicator currentStep={0}/>
-            <form onSubmit={handleSubmit(onSubmit)} className="w-[358px] mx-auto">
+            <form onSubmit={handleSubmit(onSubmit)} className="w-[358px] mx-auto pb-[20px]">
                 
                 <div className="mt-[37px]">
                     <p className="mb-[4px] ml-[5px]">이름</p>
@@ -246,17 +246,19 @@ const Step1 = ({onNext}) => {
                     </div>
                 </div>
 
-                <div className="absolute bottom-[34px]">
-                    <button 
-                        type="submit"
-                        disabled={!isActive}
-                        className={`border border-box border-none w-[358px] h-[56px] rounded-md gap-[10px] text-lg
-                        ${!isActive ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
-                    >
-                        계속하기
-                    </button>
-                </div>
             </form>
+
+            <div className="fixed bottom-[34px] left-1/2 -translate-x-1/2 w-[358px]">
+                <button 
+                    type="button"
+                    onClick={handleSubmit(onSubmit)}
+                    disabled={!isActive}
+                    className={`border border-box border-none w-full h-[56px] rounded-md gap-[10px] text-lg
+                    ${!isActive ? 'bg-[#F0F0F0] text-[#C7C7C7]' : 'bg-[#39235C] text-white'}`}
+                >
+                    계속하기
+                </button>
+            </div>
         </div>
     )
 }
